@@ -62,7 +62,7 @@ export function LoginPage() {
             </Badge>
             <h2 className="text-5xl font-extrabold leading-tight tracking-tight">
               Gerencie seus leads com <br />
-              <span className="text-black/20">precisão cirúrgica</span>
+              <span className="text-black">precisão cirúrgica</span>
             </h2>
             <p className="text-xl text-white/80 font-medium">
               A plataforma definitiva para consultores de proteção veicular. Controle vendas e metas em um só lugar.
