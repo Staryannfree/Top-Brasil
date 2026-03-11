@@ -30,7 +30,7 @@ const LandingPage = () => {
           <div className="flex items-center gap-2">
             <img src={logoTopBrasil} alt="Logo Top Brasil" className="h-10 w-auto" />
             <span className="text-2xl font-black text-[#111827] tracking-tighter hidden sm:block">
-              TOP<span className="text-[#dc2626]">BRASIL</span>
+              TOP<span className="text-[#EB6607]">BRASIL</span>
             </span>
           </div>
           <a href="#cotacao" className="bg-[#111827] text-white px-5 py-2 rounded-lg font-bold hover:bg-gray-800 transition text-sm">
@@ -43,7 +43,7 @@ const LandingPage = () => {
       <section id="cotacao" className="relative bg-[#111827] text-white overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-40"></div>
         <div className="relative max-w-5xl mx-auto px-4 py-20 lg:py-28 text-center z-10">
-          <div className="inline-block bg-[#dc2626] text-white font-bold px-4 py-1 rounded-full text-sm mb-6 uppercase tracking-wider">
+          <div className="inline-block bg-[#EB6607] text-white font-bold px-4 py-1 rounded-full text-sm mb-6 uppercase tracking-wider">
             <i className="fas fa-star text-yellow-300 mr-1"></i> A Melhor Proteção do Brasil
           </div>
           <h1 className="text-4xl lg:text-6xl font-black mb-6 leading-tight">
@@ -79,7 +79,7 @@ const LandingPage = () => {
             </div>
             <button 
               onClick={enviarLead}
-              className="bg-[#dc2626] hover:bg-red-700 text-white font-black py-4 px-8 rounded-lg shadow-lg transform transition hover:scale-105 flex items-center justify-center gap-2"
+              className="bg-[#EB6607] hover:bg-red-700 text-white font-black py-4 px-8 rounded-lg shadow-lg transform transition hover:scale-105 flex items-center justify-center gap-2"
             >
               VER VALOR <i className="fas fa-arrow-right"></i>
             </button>
@@ -93,7 +93,7 @@ const LandingPage = () => {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-black text-[#111827]">Cobertura Completa para sua paz de espírito</h2>
-            <div className="w-20 h-1 bg-[#dc2626] mx-auto mt-4"></div>
+            <div className="w-20 h-1 bg-[#EB6607] mx-auto mt-4"></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <BenefitCard icon="fas fa-mask" title="Roubo e Furto" description="Indenização de 100% da Tabela FIPE caso o seu veículo não seja recuperado." />
@@ -158,7 +158,7 @@ const LandingPage = () => {
 
 const BenefitCard = ({ icon, title, description }: { icon: string; title: string; description: string }) => (
   <div className="flex gap-4 p-6 border border-gray-100 rounded-2xl hover:shadow-xl transition bg-gray-50">
-    <div className="text-3xl text-[#dc2626]"><i className={icon}></i></div>
+    <div className="text-3xl text-[#EB6607]"><i className={icon}></i></div>
     <div>
       <h3 className="font-bold text-xl mb-2 text-[#111827]">{title}</h3>
       <p className="text-gray-600 text-sm">{description}</p>
