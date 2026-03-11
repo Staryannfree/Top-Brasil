@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Shield, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import logoTopBrasil from '@/logo/topbrasil.png';
+import { Badge } from './ui/badge';
 
 export type UserRole = 'vendedor' | 'gerente' | 'superadmin';
 
@@ -41,33 +43,51 @@ export function LoginPage() {
   return (
     <div className="min-h-screen flex bg-background">
       {/* Left — brand visual */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[hsl(222,47%,11%)] via-[hsl(220,40%,18%)] to-[hsl(215,30%,8%)]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_60%,hsl(222,47%,20%)_0%,transparent_60%)]" />
-        <div className="relative z-10 flex flex-col justify-between p-12 text-white">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#EB6607]">
+        {/* Abstract shapes for depth */}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-96 w-96 rounded-full bg-black/10 blur-3xl" />
+        
+        <div className="relative z-10 flex flex-col justify-between p-12 text-white h-full">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur">
-              <Shield className="h-6 w-6" />
-            </div>
-            <span className="text-xl font-bold tracking-tight">Proteção Top Brasil</span>
+            <img src={logoTopBrasil} alt="Logo Top Brasil" className="h-12 w-auto brightness-0 invert" />
+            <span className="text-2xl font-black tracking-tighter">
+              TOP<span className="opacity-80">BRASIL</span>
+            </span>
           </div>
-          <div className="space-y-4 max-w-md">
-            <h2 className="text-4xl font-extrabold leading-tight">
-              Gerencie seus leads com <span className="text-primary-foreground/80">precisão cirúrgica</span>
+          
+          <div className="space-y-6 max-w-md">
+            <Badge variant="outline" className="text-white border-white/40 bg-white/10 backdrop-blur w-fit">
+              ✨ CRM Inteligente v2.0
+            </Badge>
+            <h2 className="text-5xl font-extrabold leading-tight tracking-tight">
+              Gerencie seus leads com <br />
+              <span className="text-black/20">precisão cirúrgica</span>
             </h2>
-            <p className="text-lg text-white/60">CRM inteligente para consultores de proteção veicular. Controle vendas, comissões e metas em um só lugar.</p>
+            <p className="text-xl text-white/80 font-medium">
+              A plataforma definitiva para consultores de proteção veicular. Controle vendas e metas em um só lugar.
+            </p>
           </div>
-          <p className="text-xs text-white/30">© 2026 Proteção Top Brasil • Todos os direitos reservados</p>
+          
+          <div className="flex items-center justify-between border-t border-white/20 pt-8 mt-auto">
+            <p className="text-sm text-white/50">© 2026 Proteção Top Brasil</p>
+            <div className="flex gap-4">
+              <div className="h-2 w-2 rounded-full bg-white" />
+              <div className="h-2 w-2 rounded-full bg-white/40" />
+              <div className="h-2 w-2 rounded-full bg-white/40" />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Right — login form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-sm space-y-8">
-          <div className="lg:hidden flex items-center gap-2 justify-center mb-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <Shield className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-bold text-foreground">Proteção Top Brasil</span>
+          <div className="lg:hidden flex items-center gap-3 justify-center mb-8">
+            <img src={logoTopBrasil} alt="Logo Top Brasil" className="h-10 w-auto" />
+            <span className="text-2xl font-black text-foreground tracking-tighter">
+              TOP<span className="text-[#EB6607]">BRASIL</span>
+            </span>
           </div>
 
           <div className="text-center lg:text-left">

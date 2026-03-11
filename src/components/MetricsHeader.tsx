@@ -16,10 +16,10 @@ const fmt = (v: number) =>
 
 export function MetricsHeader({ totalToday, valorPotencial, contratosFechados, totalLeads, comissoesEstimadas, metaProgresso }: MetricsHeaderProps) {
   const cards = [
-    { label: 'Leads Hoje', value: totalToday, icon: Users, color: 'text-blue-500 bg-blue-500/10' },
+    { label: 'Leads Hoje', value: totalToday, icon: Users, color: 'text-primary bg-primary/10' },
     { label: 'Valor Potencial', value: fmt(valorPotencial), icon: TrendingUp, color: 'text-emerald-500 bg-emerald-500/10' },
     { label: 'Contratos Fechados', value: contratosFechados, icon: FileCheck, color: 'text-purple-500 bg-purple-500/10' },
-    { label: 'Total de Leads', value: totalLeads, icon: BarChart3, color: 'text-amber-500 bg-amber-500/10' },
+    { label: 'Total de Leads', value: totalLeads, icon: BarChart3, color: 'text-primary bg-primary/10' },
   ];
 
   return (

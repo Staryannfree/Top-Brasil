@@ -33,7 +33,7 @@ function calcLeadScore(lead: Lead): { score: number; label: string; color: strin
 
   if (score >= 70) return { score, label: 'Quente', color: 'text-destructive' };
   if (score >= 40) return { score, label: 'Morno', color: 'text-amber-500' };
-  return { score, label: 'Frio', color: 'text-blue-500' };
+  return { score, label: 'Frio', color: 'text-slate-400' };
 }
 
 interface LeadCardProps {

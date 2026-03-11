@@ -470,7 +470,7 @@ export function LeadDossier({ lead, open, onOpenChange, onUpdateLead, onUpdateSt
         <DialogContent className="max-w-md p-0 overflow-hidden">
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-8 space-y-5">
             <div className="flex items-center gap-2">
-              <Shield className="h-6 w-6 text-emerald-400" />
+              <Shield className="h-6 w-6 text-primary" />
               <span className="text-lg font-bold tracking-wide">Proteção Top Brasil</span>
             </div>
             <div className="border-t border-white/10 pt-4 space-y-1">
@@ -481,11 +481,11 @@ export function LeadDossier({ lead, open, onOpenChange, onUpdateLead, onUpdateSt
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-white/50">Valor FIPE</p>
-                <p className="text-lg font-bold text-emerald-400">{lead.valor_fipe != null ? fmt(lead.valor_fipe) : '—'}</p>
+                <p className="text-lg font-bold text-primary">{lead.valor_fipe != null ? fmt(lead.valor_fipe) : '—'}</p>
               </div>
               <div>
                 <p className="text-xs text-white/50">Mensalidade estimada</p>
-                <p className="text-lg font-bold text-emerald-400">{mensalidade != null ? fmt(mensalidade) : '—'}</p>
+                <p className="text-lg font-bold text-primary">{mensalidade != null ? fmt(mensalidade) : '—'}</p>
               </div>
             </div>
             {franquia != null && (

@@ -5,6 +5,47 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+/**
+ * parseBRMoney: Converte qualquer formato de valor monetário brasileiro para número.
+ */
+function parseBRMoney(val: any): number {
+    if (typeof val === 'number') return val;
+    if (!val) return 0;
+  
+    let s = String(val).trim();
+    if (!s) return 0;
+  
+    s = s.replace(/R\$\s*/g, '').trim();
+  
+    if (s.includes(',')) {
+      s = s.replace(/\./g, '').replace(',', '.');
+    } else {
+      const dotCount = (s.match(/\./g) || []).length;
+      if (dotCount === 1) {
+        const afterDot = s.split('.')[1];
+        if (afterDot.length === 3) {
+          s = s.replace('.', '');
+        }
+      } else {
+        s = s.replace(/\./g, '');
+      }
+    }
+  
+    const parsed = parseFloat(s.replace(/[^\d.]/g, ''));
+    return isNaN(parsed) ? 0 : parsed;
+}
+
+/**
+ * normalizePhone: Garante que o número está no formato 55DD9NNNNNNNN (sem +)
+ */
+function normalizePhone(phone: string): string {
+    const clean = phone.replace(/\D/g, '');
+    if (clean.length === 11 || clean.length === 10) {
+        return '55' + clean;
+    }
+    return clean;
+}
+
 Deno.serve(async (req) => {
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders });
@@ -22,191 +63,151 @@ Deno.serve(async (req) => {
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        const { nome, telefone, placa } = await req.json();
+        const body = await req.json();
+        const { nome, telefone, placa } = body;
+
+        console.log(`[START] Lead: ${nome} | Tel: ${telefone} | Placa: ${placa}`);
 
         if (!nome || !telefone || !placa) {
-            return new Response(JSON.stringify({ error: 'Nome, Telefone e Placa são obrigatórios' }), {
-                status: 400,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
+            throw new Error('Campos obrigatórios: nome, telefone, placa.');
         }
 
-        const placaFipeToken = Deno.env.get('PLACAFIPE_TOKEN');
-        if (!placaFipeToken) {
-            throw new Error('PLACAFIPE_TOKEN não configurado no Supabase');
+        let tenant_id = body.tenant_id;
+        if (!tenant_id) {
+            const { data: t } = await supabase.from('tenants').select('id').limit(1).single();
+            tenant_id = t?.id;
         }
 
+        const cleanPhone = telefone.replace(/\D/g, '');
         const cleanPlaca = placa.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-        const placaFipeUrl = 'https://api.placafipe.com.br/getplacafipe';
+        const smclickPhone = normalizePhone(cleanPhone);
 
-        console.log(`Consultando PlacaFipe para: ${cleanPlaca}`);
-
-        const response = await fetch(placaFipeUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ placa: cleanPlaca, token: placaFipeToken })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Falha API PlacaFipe: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.codigo !== 1) {
-            return new Response(JSON.stringify({
-                success: false,
-                error: data.mensagem || 'Placa não localizada'
-            }), {
-                status: 200,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
-        }
-
-        const info = data.informacoes_veiculo;
-        const fipeArray = data.fipe || [];
-
+        // --- 1. Fipe ---
+        let vehicleInfo: any = null;
         let rawFipeValue = 0;
-        if (fipeArray.length > 0 && fipeArray[0].valor) {
-            const valorStr = String(fipeArray[0].valor);
-            const apenasDigitos = valorStr.replace(/[^\d]/g, '');
-            rawFipeValue = parseInt(apenasDigitos, 10) / 100;
+        let valor_mensalidade = 0;
+        let valor_cota_participacao = 0;
+
+        try {
+            const placaFipeToken = Deno.env.get('PLACAFIPE_TOKEN');
+            if (placaFipeToken) {
+                const fipeRes = await fetch('https://api.placafipe.com.br/getplacafipe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ placa: cleanPlaca, token: placaFipeToken })
+                });
+
+                if (fipeRes.ok) {
+                    const fipeData = await fipeRes.json();
+                    if (fipeData.codigo === 1) {
+                        const info = fipeData.informacoes_veiculo;
+                        vehicleInfo = info;
+                        const fipeArray = fipeData.fipe || [];
+                        if (fipeArray.length > 0 && fipeArray[0].valor) {
+                            rawFipeValue = parseBRMoney(fipeArray[0].valor);
+                            valor_mensalidade = rawFipeValue <= 30000 ? 90 : rawFipeValue <= 60000 ? 130 : 180;
+                            valor_cota_participacao = Math.max(1200, rawFipeValue * 0.04);
+                            console.log(`[FIPE] Valor: ${rawFipeValue} | Mens: ${valor_mensalidade}`);
+                        }
+                    }
+                }
+            }
+        } catch (e: any) {
+            console.error("[FIPE ERROR]", e.message);
         }
 
-        // Regras de Negócio
-        const valor_mensalidade = rawFipeValue <= 30000 ? 90 : rawFipeValue <= 60000 ? 130 : 180;
-        const valor_cota_participacao = Math.max(1200, rawFipeValue * 0.04);
-
-        const veiculoData = {
-            marca: info.marca,
-            modelo: info.modelo,
-            ano_fabricacao: info.ano,
-            valor_fipe: rawFipeValue,
-            valor_mensalidade,
-            valor_cota_participacao
+        // --- 2. Salvar Lead ---
+        const leadData: any = {
+            nome,
+            telefone: cleanPhone,
+            placa: cleanPlaca,
+            tenant_id,
+            origem: 'smclick',
+            status: 'novo_lead',
+            veiculo_marca: vehicleInfo?.marca || null,
+            veiculo_modelo: vehicleInfo?.modelo || null,
+            veiculo_ano: vehicleInfo?.ano || null,
+            valor_fipe: rawFipeValue || null,
+            valor_mensalidade: valor_mensalidade || null,
+            valor_cota_participacao: valor_cota_participacao || null,
+            veiculo_cor: vehicleInfo?.cor || null,
+            veiculo_cidade: vehicleInfo ? `${vehicleInfo.municipio} - ${vehicleInfo.uf}` : null
         };
 
-        let leadIdToMessage = null;
+        const { data: searchLeads } = await supabase.from('leads').select('id, placa')
+            .eq('tenant_id', tenant_id).ilike('telefone', `%${cleanPhone.slice(-8)}%`).order('created_at', { ascending: false });
 
-        // Deduplicação Rigorosa
-        const { data: existingLeads, error: searchError } = await supabase
-            .from('leads')
-            .select('*')
-            .eq('telefone', telefone)
-            .order('created_at', { ascending: false });
-
-        if (searchError) throw searchError;
-
-        if (existingLeads && existingLeads.length > 0) {
-            const lead = existingLeads[0];
-            
-            if (!lead.placa || lead.placa === cleanPlaca) {
-                // UPDATE
-                console.log(`Atualizando lead existente (${lead.id}) com placa ${cleanPlaca}`);
-                const { error: updateError } = await supabase
-                    .from('leads')
-                    .update({
-                        nome,
-                        placa: cleanPlaca,
-                        ...veiculoData
-                    })
-                    .eq('id', lead.id);
-
-                if (updateError) throw updateError;
-                leadIdToMessage = lead.id;
+        if (searchLeads && searchLeads.length > 0) {
+            const lead = searchLeads[0];
+            const storedPlaca = lead.placa ? lead.placa.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
+            if (!storedPlaca || storedPlaca === cleanPlaca) {
+                delete leadData.status;
+                await supabase.from('leads').update(leadData).eq('id', lead.id);
+                console.log(`[DB] Lead atualizado: ${lead.id}`);
             } else {
-                // INSERT (Novo Carro)
-                console.log(`Lead existente encontado, mas placa diferente. Inserindo novo lead.`);
-                const { data: newLead, error: insertError } = await supabase
-                    .from('leads')
-                    .insert({
-                        nome,
-                        telefone,
-                        placa: cleanPlaca,
-                        status: 'novo_lead',
-                        ...veiculoData
-                    })
-                    .select()
-                    .single();
-
-                if (insertError) throw insertError;
-                leadIdToMessage = newLead.id;
+                await supabase.from('leads').insert(leadData);
+                console.log(`[DB] Novo lead (carro diferente)`);
             }
         } else {
-            // INSERT (Lead Novo)
-            console.log(`Nenhum lead encontrado com telefone ${telefone}. Inserindo novo.`);
-            const { data: newLead, error: insertError } = await supabase
-                .from('leads')
-                .insert({
-                    nome,
-                    telefone,
-                    placa: cleanPlaca,
-                    status: 'novo_lead',
-                    ...veiculoData
-                })
-                .select()
-                .single();
-
-            if (insertError) throw insertError;
-            leadIdToMessage = newLead.id;
+            await supabase.from('leads').insert(leadData);
+            console.log(`[DB] Novo lead inserido`);
         }
 
-        // Disparo Ativo (SMClick)
-        const smclickKey = Deno.env.get('SMCLICK_API_KEY');
-        if (!smclickKey) {
-            console.warn('SMCLICK_API_KEY não configurado, pulando envio.');
-        } else {
-            const smclickUrl = 'https://api.smclick.com.br/attendances/chats/message';
+        // --- 3. SMClick ---
+        try {
+            const smclickKey = Deno.env.get('SMCLICK_API_KEY');
+            const instanceId = Deno.env.get("SMCLICK_INSTANCE_ID");
             
-            const primeiroNome = nome.split(' ')[0];
-            const fipeFormatada = rawFipeValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            const mensalidadeFormatada = valor_mensalidade.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            if (!smclickKey || !instanceId) {
+                console.error("[SMCLICK] ERRO: SMCLICK_API_KEY ou SMCLICK_INSTANCE_ID não configurados.");
+            } else if (!rawFipeValue) {
+                console.warn("[SMCLICK] Pulando mensagem (Sem valor FIPE)");
+            } else {
+                const smclickUrl = 'https://api.smclick.com.br/instances/messages';
+                const primeiroNome = nome.split(' ')[0];
+                const fipeStr = rawFipeValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                const mensalStr = valor_mensalidade.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-            const message = `Olá ${primeiroNome}! Aqui é da Top Brasil Proteção Veicular 🚗🛡️\n` +
-                            `Vimos que você simulou a proteção para o seu ${info.modelo} (${info.ano}) de placa ${cleanPlaca}.\n\n` +
-                            `Temos uma excelente notícia! Conseguimos aprovar uma cobertura completa (Roubo, Furto, Colisão, PT, Guincho e Terceiros) no valor FIPE de ${fipeFormatada}.\n\n` +
-                            `Sua mensalidade ficaria apenas ${mensalidadeFormatada}.\n\n` +
-                            `O que achou da proposta? Podemos seguir com a vistoria digital?`;
+                const message = `Olá ${primeiroNome}! Aqui é da Top Brasil Proteção Veicular 🚗🛡️\n` +
+                                `Vimos que você simulou a proteção para o seu ${vehicleInfo?.modelo || 'veículo'} (${vehicleInfo?.ano || '-'}) de placa ${cleanPlaca}.\n\n` +
+                                `Temos uma excelente notícia! Conseguimos aprovar uma cobertura completa no valor FIPE de ${fipeStr}.\n\n` +
+                                `Sua mensalidade ficaria apenas *${mensalStr}*.\n\n` +
+                                `O que achou da proposta? Podemos seguir com a vistoria digital?`;
 
-            console.log(`Enviando WhatsApp para ${telefone}...`);
-
-            const cleanPhone = telefone.replace(/\D/g, '');
-
-            try {
-                const smclickRes = await fetch(smclickUrl, {
+                console.log(`[SMCLICK] Enviando para ${smclickPhone} (Instance: ${instanceId})`);
+                
+                const smRes = await fetch(smclickUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': smclickKey
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-API-KEY': smclickKey },
                     body: JSON.stringify({
-                        protocol: "whatsapp",
-                        phone: `+55${cleanPhone}`,
+                        instance: instanceId,
+                        type: "text",
                         content: {
-                            type: 'text',
-                            text: message
+                            telephone: smclickPhone,
+                            message: message
                         }
                     })
                 });
 
-                if (!smclickRes.ok) {
-                    console.error("Erro no SMClick: ", await smclickRes.text());
+                if (!smRes.ok) {
+                    const txt = await smRes.text();
+                    console.error(`[SMCLICK ERROR] Status: ${smRes.status} | Body: ${txt}`);
                 } else {
-                    console.log("Mensagem SMClick enviada com sucesso.");
+                    console.log(`[SMCLICK SUCCESS] Mensagem enviada para ${smclickPhone}`);
                 }
-            } catch (smclickErr) {
-                console.error("Excecao ao chamar SMClick: ", smclickErr);
             }
+        } catch (e: any) {
+            console.error("[SMCLICK EXCEPTION]", e.message);
         }
 
-        return new Response(JSON.stringify({ success: true, message: 'Processo concluído' }), {
+        return new Response(JSON.stringify({ success: true }), {
             status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
 
-    } catch (error: any) {
-        console.error("Erro na Edge Function:", error.message);
-        return new Response(JSON.stringify({ error: error.message }), {
+    } catch (err: any) {
+        console.error("[FATAL ERROR]", err.message);
+        return new Response(JSON.stringify({ error: err.message }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });

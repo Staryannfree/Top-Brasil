@@ -28,7 +28,7 @@ const SINISTRO_COLORS: Record<string, string> = {
 };
 
 const COLUMN_COLORS: Record<LeadStatus, string> = {
-  novo_lead: 'bg-blue-500',
+  novo_lead: 'bg-primary', // Laranja Top Brasil
   cotacao_enviada: 'bg-amber-500',
   em_negociacao: 'bg-purple-500',
   vistoria_contrato: 'bg-emerald-500',
