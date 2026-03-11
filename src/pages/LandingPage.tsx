@@ -1,14 +1,78 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import logoTopBrasil from '@/logo/topbrasil.png';
 
+const formatPlaca = (val: string) => {
+  let formatted = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (formatted.length > 7) {
+    formatted = formatted.substring(0, 7);
+  }
+  if (formatted.length > 3) {
+    formatted = formatted.substring(0, 3) + '-' + formatted.substring(3);
+  }
+  return formatted;
+};
+
+const formatTelefone = (val: string) => {
+  let formatted = val.replace(/\D/g, '');
+  if (formatted.length > 11) {
+    formatted = formatted.substring(0, 11);
+  }
+  if (formatted.length > 2) {
+    formatted = '(' + formatted.substring(0, 2) + ')' + formatted.substring(2);
+  }
+  return formatted;
+};
+
 const LandingPage = () => {
-  const enviarLead = () => {
-    const placa = (document.getElementById('placa') as HTMLInputElement)?.value;
-    const telefone = (document.getElementById('telefone') as HTMLInputElement)?.value;
-    if (placa && telefone) {
-      window.open(`https://wa.me/55SEUNUMERO?text=Olá, gostaria de uma cotação para o veículo de placa ${placa}. Meu telefone é ${telefone}.`, '_blank');
-    } else {
-      alert('Por favor, preencha a placa e o telefone.');
+  const [nome, setNome] = useState('');
+  const [placa, setPlaca] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handlePlacaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPlaca(formatPlaca(e.target.value));
+  };
+
+  const handleTelefoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTelefone(formatTelefone(e.target.value));
+  };
+
+  const enviarLead = async () => {
+    if (!nome.trim() || !placa.trim() || !telefone.trim() || telefone.length < 13) {
+      toast.error('Por favor, preencha todos os campos corretamente.');
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const response = await supabase.functions.invoke('processar-lead-landing', {
+        body: { nome, placa, telefone }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      if (response.data && response.data.success === false) {
+          toast.error(response.data.error || 'Não conseguimos localizar essa placa. Verifique e tente novamente.');
+          setLoading(false);
+          return;
+      }
+
+      setSuccess(true);
+      setNome('');
+      setPlaca('');
+      setTelefone('');
+    } catch (error: any) {
+      toast.error('Ocorreu um erro ao processar sua cotação. Tente novamente mais tarde.');
+    } finally {
+      if (!success) {
+         setLoading(false);
+      }
     }
   };
 
@@ -53,16 +117,29 @@ const LandingPage = () => {
             Roubo, furto, perda total e guincho 24h. Descubra agora o valor exato para blindar o seu patrimônio 100% pela Tabela FIPE.
           </p>
 
-          <div className="bg-white p-2 rounded-xl shadow-2xl max-w-3xl mx-auto flex flex-col md:flex-row gap-2">
+          <div className="bg-white p-3 rounded-xl shadow-2xl max-w-4xl mx-auto flex flex-col md:flex-row gap-2">
+            <div className="flex-1 relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i className="fas fa-user text-gray-400"></i>
+              </div>
+              <input 
+                type="text" 
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                placeholder="Seu Primeiro Nome" 
+                className="w-full pl-12 pr-4 py-4 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#111827] focus:ring-2 focus:ring-[#111827] focus:outline-none text-gray-900 font-bold text-lg" 
+              />
+            </div>
             <div className="flex-1 relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <i className="fas fa-car text-gray-400"></i>
               </div>
               <input 
                 type="text" 
-                id="placa" 
+                value={placa}
+                onChange={handlePlacaChange}
                 placeholder="Sua Placa (ABC-1234)" 
-                className="w-full pl-12 pr-4 py-4 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#111827] focus:ring-0 text-gray-900 font-bold uppercase text-lg" 
+                className="w-full pl-12 pr-4 py-4 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#111827] focus:ring-2 focus:ring-[#111827] focus:outline-none text-gray-900 font-bold uppercase text-lg" 
                 maxLength={8} 
               />
             </div>
@@ -72,18 +149,32 @@ const LandingPage = () => {
               </div>
               <input 
                 type="tel" 
-                id="telefone" 
-                placeholder="Seu WhatsApp" 
-                className="w-full pl-12 pr-4 py-4 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#111827] focus:ring-0 text-gray-900 font-bold text-lg" 
+                value={telefone}
+                onChange={handleTelefoneChange}
+                placeholder="(99)999999999" 
+                className="w-full pl-12 pr-4 py-4 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#111827] focus:ring-2 focus:ring-[#111827] focus:outline-none text-gray-900 font-bold text-lg"
+                maxLength={14}
               />
             </div>
             <button 
               onClick={enviarLead}
-              className="bg-[#EB6607] hover:bg-red-700 text-white font-black py-4 px-8 rounded-lg shadow-lg transform transition hover:scale-105 flex items-center justify-center gap-2"
+              disabled={loading || success}
+              className={`font-black py-4 px-8 rounded-lg shadow-lg transform transition flex items-center justify-center gap-2 ${success ? 'bg-green-500 text-white cursor-not-allowed hover:scale-100' : 'bg-[#EB6607] hover:bg-red-700 text-white hover:scale-105'}`}
             >
-              VER VALOR <i className="fas fa-arrow-right"></i>
+               {success ? (
+                  <><i className="fas fa-check"></i> PRONTO!</>
+               ) : loading ? (
+                 <><i className="fas fa-spinner fa-spin"></i> CALCULANDO...</>
+               ) : (
+                 <>VER VALOR <i className="fas fa-arrow-right"></i></>
+               )}
             </button>
           </div>
+          {success && (
+              <p className="text-green-400 font-bold mt-4 text-lg animate-fade-in">
+                 🎉 Pronto! Verifique o seu WhatsApp agora mesmo com a sua proposta.
+              </p>
+          )}
           <p className="text-sm text-gray-400 mt-4"><i className="fas fa-shield-alt text-[#25D366]"></i> Mais de 5.000 veículos protegidos.</p>
         </div>
       </section>
