@@ -112,7 +112,7 @@ export function AddLeadModal({ open, onOpenChange, onSave, initialData }: AddLea
             <Select value={origem} onValueChange={(v) => setOrigem(v as LeadOrigem)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="smclick">🤖 SMClick</SelectItem>
+                <SelectItem value="smclick">🤖 YannIA</SelectItem>
                 <SelectItem value="meta_ads">📱 Meta Ads</SelectItem>
                 <SelectItem value="indicacao">🗣️ Indicação</SelectItem>
               </SelectContent>

@@ -79,7 +79,7 @@ export const KANBAN_COLUMNS: { id: LeadStatus; title: string }[] = [
 export const ATENDENTES = ['Carlos', 'Ana', 'Yann'];
 
 export const ORIGEM_CONFIG: Record<LeadOrigem, { label: string; emoji: string; color: string }> = {
-  smclick: { label: 'SMClick', emoji: '🤖', color: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30' },
+  smclick: { label: 'YannIA', emoji: '🤖', color: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30' },
   meta_ads: { label: 'Meta Ads', emoji: '📱', color: 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30' },
   indicacao: { label: 'Indicação', emoji: '🗣️', color: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' },
 };

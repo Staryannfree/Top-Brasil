@@ -243,14 +243,14 @@ export function LiveChat() {
                 body: { protocol: selectedLead.protocolo }
             });
         } catch (err) {
-            console.error("Erro ao sincronizar SMClick:", err);
+            console.error("Erro ao sincronizar YannIA:", err);
         }
     };
 
     const handleSyncManual = async () => {
         if (!selectedLead) return;
 
-        toast.info("Sincronizando com SMClick...");
+        toast.info("Sincronizando com YannIA...");
         setIsLoading(true);
 
         try {
@@ -373,8 +373,8 @@ export function LiveChat() {
                 console.error("Error invoking send-chat-message function:", fnError);
                 toast.error("Erro ao invocar função de envio: " + fnError.message);
             } else if (result && result.success === false) {
-                console.error("SMClick API returned error:", result.error);
-                toast.error(result.error);
+                console.error("YannIA API returned error:", result.error);
+                toast.error(result.error.replace(/SMClick/gi, 'YannIA'));
             }
 
             setIsSending(false);
@@ -650,7 +650,7 @@ export function LiveChat() {
                                 </Button>
                             </form>
                             <p className="text-[10px] text-muted-foreground mt-2 text-right">
-                                Pressione Enter para enviar. Mensagens via SMClick API.
+                                Pressione Enter para enviar. Mensagens via YannIA API.
                             </p>
                         </div>
                     </>
