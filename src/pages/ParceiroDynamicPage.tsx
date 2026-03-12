@@ -50,6 +50,7 @@ const ParceiroDynamicPage = () => {
           .from('parceiros_ativos')
           .select('*')
           .eq('slug', slug)
+          .eq('ativo', true)
           .maybeSingle();
 
         if (error) throw error;

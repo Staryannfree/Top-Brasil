@@ -18,6 +18,7 @@ import { MarketingHub } from '@/components/MarketingHub';
 import { MapaLeads } from '@/components/MapaLeads';
 import { TrainHub } from '@/components/TrainHub';
 import { TeamManagement } from '@/components/TeamManagement';
+import B2BPartners from './B2BPartners';
 import { useLeadsLocal } from '@/hooks/useLeadsLocal';
 import { LiveChat } from '@/components/LiveChat';
 import { PlacasHub } from '@/components/PlacasHub';
@@ -44,7 +45,7 @@ import { DEFAULT_COMMISSION_SETTINGS } from '@/types/commissionSettings';
 import type { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 
-type AppView = 'funil' | 'carteira' | 'equipe' | 'marketing' | 'mapa' | 'treinamento' | 'admin' | 'atendimento' | 'placas';
+type AppView = 'funil' | 'carteira' | 'equipe' | 'marketing' | 'mapa' | 'treinamento' | 'admin' | 'atendimento' | 'placas' | 'parceiros';
 
 const ALL_NAV_ITEMS: { id: AppView; label: string; icon: typeof BarChart3; emoji: string; roles: UserRole[] }[] = [
   { id: 'funil', label: 'Funil de Vendas', icon: BarChart3, emoji: '📊', roles: ['vendedor', 'gerente', 'superadmin'] },
@@ -56,6 +57,7 @@ const ALL_NAV_ITEMS: { id: AppView; label: string; icon: typeof BarChart3; emoji
   { id: 'admin', label: 'Admin SaaS', icon: Building2, emoji: '🏢', roles: ['superadmin'] },
   { id: 'placas', label: 'Central de Placas', icon: Car, emoji: '🚗', roles: ['vendedor', 'gerente', 'superadmin'] },
   { id: 'atendimento', label: 'Atendimento (Chat)', icon: MessageSquare, emoji: '💬', roles: ['vendedor', 'gerente', 'superadmin'] },
+  { id: 'parceiros', label: 'Parceiros B2B', icon: Building2, emoji: '🤝', roles: ['gerente', 'superadmin'] },
 ];
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -323,8 +325,9 @@ const Index = () => {
                 {currentView === 'mapa' && <MapaLeads />}
                 {currentView === 'treinamento' && <TrainHub />}
                 {currentView === 'admin' && userRole === 'superadmin' && <AdminSaas />}
-                {currentView === 'placas' && <PlacasHub onAddLead={(data) => { setAddLeadData(data || null); setAddOpen(true); }} />}
-                {currentView === 'atendimento' && <LiveChat />}
+                { currentView === 'placas' && <PlacasHub onAddLead={(data) => { setAddLeadData(data || null); setAddOpen(true); }} />}
+                { currentView === 'atendimento' && <LiveChat />}
+                { currentView === 'parceiros' && <B2BPartners />}
               </>
             )}
           </main>
