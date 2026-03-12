@@ -3,9 +3,10 @@ export type LeadStatus =
   | 'cotacao_enviada'
   | 'em_negociacao'
   | 'vistoria_contrato'
-  | 'perdido';
+  | 'perdido'
+  | 'novo_parceiro';
 
-export type LeadOrigem = 'smclick' | 'meta_ads' | 'indicacao';
+export type LeadOrigem = 'smclick' | 'meta_ads' | 'indicacao' | 'landing_page_parceiros';
 
 export interface LeadNote {
   id: string;
@@ -70,6 +71,7 @@ export interface Lead {
 
 export const KANBAN_COLUMNS: { id: LeadStatus; title: string }[] = [
   { id: 'novo_lead', title: 'Novo Lead' },
+  { id: 'novo_parceiro', title: 'Novos Parceiros' },
   { id: 'cotacao_enviada', title: 'Cotação Enviada' },
   { id: 'em_negociacao', title: 'Em Negociação' },
   { id: 'vistoria_contrato', title: 'Vistoria / Contrato' },
@@ -82,4 +84,5 @@ export const ORIGEM_CONFIG: Record<LeadOrigem, { label: string; emoji: string; c
   smclick: { label: 'YannIA', emoji: '🤖', color: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30' },
   meta_ads: { label: 'Meta Ads', emoji: '📱', color: 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30' },
   indicacao: { label: 'Indicação', emoji: '🗣️', color: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' },
+  landing_page_parceiros: { label: 'B2B Parqueiro', emoji: '🤝', color: 'bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/30' },
 };

@@ -97,9 +97,14 @@ const LandingPage = () => {
               TOP<span className="text-[#EB6607]">BRASIL</span>
             </span>
           </div>
-          <a href="#cotacao" className="bg-[#111827] text-white px-5 py-2 rounded-lg font-bold hover:bg-gray-800 transition text-sm">
-            Fazer Cotação
-          </a>
+          <div className="flex items-center gap-4">
+            <a href="/parceiros" className="text-sm font-bold text-[#111827] hover:text-[#EB6607] transition hidden sm:block">
+              Área de Parceiros
+            </a>
+            <a href="#cotacao" className="bg-[#111827] text-white px-5 py-2 rounded-lg font-bold hover:bg-gray-800 transition text-sm">
+              Fazer Cotação
+            </a>
+          </div>
         </div>
       </header>
 
