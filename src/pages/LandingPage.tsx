@@ -64,6 +64,17 @@ const LandingPage = () => {
       }
 
       setSuccess(true);
+      
+      // WhatsApp Redirection Logic
+      const numeroWhatsAppTopBrasil = "5511999999999"; 
+      const mensagemPronta = `Olá! Acabei de simular no site e quero ver a proposta para a placa ${placa}`;
+      const linkWhatsapp = `https://wa.me/${numeroWhatsAppTopBrasil}?text=${encodeURIComponent(mensagemPronta)}`;
+      
+      // Delay slightly for the success state UI to show (optional but recommended)
+      setTimeout(() => {
+        window.location.href = linkWhatsapp;
+      }, 1500);
+
       setNome('');
       setPlaca('');
       setTelefone('');
