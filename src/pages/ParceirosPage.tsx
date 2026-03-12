@@ -40,7 +40,11 @@ const ParceirosPage = () => {
     setLoading(true);
     
     try {
-      // Nome composto para o card do Lead
+      // 1. Buscar um tenant_id padrão (já que é uma página pública)
+      const { data: tenantData } = await supabase.from('tenants').select('id').limit(1).single();
+      const tenant_id = tenantData?.id;
+
+      // 2. Nome composto para o card do Lead
       const nomeFinal = `[${tipoNegocio}] ${empresa} - ${nomeResp}`;
       const telefoneLimpo = telefone.replace(/\D/g, '');
 
@@ -50,9 +54,10 @@ const ParceirosPage = () => {
         categoria: tipoNegocio,
         origem: 'landing_page_parceiros',
         status: 'novo_parceiro',
-        dadosVerificados: false,
-        temLembrete: false,
-        consultoriaVip: false
+        tenant_id: tenant_id,
+        dados_verificados: false,
+        tem_lembrete: false,
+        consultoria_vip: false
       }]);
 
       if (error) {
