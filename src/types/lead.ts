@@ -6,7 +6,7 @@ export type LeadStatus =
   | 'perdido'
   | 'novo_parceiro';
 
-export type LeadOrigem = 'smclick' | 'meta_ads' | 'indicacao' | 'landing_page_parceiros';
+export type LeadOrigem = 'smclick' | 'meta_ads' | 'indicacao' | 'landing_page_parceiros' | string;
 
 export interface LeadNote {
   id: string;

@@ -65,8 +65,14 @@ Deno.serve(async (req) => {
 
         const body = await req.json();
         const { nome, telefone, placa } = body;
+        
+        // Sanitização da Origem
+        let origem = 'landing_page_b2c';
+        if (body.origem && typeof body.origem === 'string') {
+            origem = body.origem.trim().substring(0, 50).replace(/[<>{}[\]]/g, '');
+        }
 
-        console.log(`[START] Lead: ${nome} | Tel: ${telefone} | Placa: ${placa}`);
+        console.log(`[START] Lead: ${nome} | Tel: ${telefone} | Placa: ${placa} | Origem: ${origem}`);
 
         if (!nome || !telefone || !placa) {
             throw new Error('Campos obrigatórios: nome, telefone, placa.');
@@ -122,7 +128,7 @@ Deno.serve(async (req) => {
             telefone: cleanPhone,
             placa: cleanPlaca,
             tenant_id,
-            origem: 'smclick',
+            origem: origem,
             status: 'novo_lead',
             veiculo_marca: vehicleInfo?.marca || null,
             veiculo_modelo: vehicleInfo?.modelo || null,
