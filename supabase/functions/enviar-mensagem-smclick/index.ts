@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
             });
         }
 
-        const smclickKey = Deno.env.get('SMCLICK_API_KEY') || 'e8cb3abe-2fb6-402c-89f4-9b83be85eef8';
+        const smclickKey = Deno.env.get('SMCLICK_API_KEY') || 'e4fc93af-b219-4691-92f2-dc108c3b9352';
 
         // Using the external message sending endpoint from SMClick API
         // Note: The actual endpoint might vary. Based on typical SMClick API patterns:
