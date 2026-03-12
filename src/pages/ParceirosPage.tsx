@@ -48,17 +48,34 @@ const ParceirosPage = () => {
       const nomeFinal = `[${tipoNegocio}] ${empresa} - ${nomeResp}`;
       const telefoneLimpo = telefone.replace(/\D/g, '');
 
-      const { data, error } = await supabase.from('leads').insert([{
+      // Tenta inserir com a origem nova, se falhar por causa do ENUM (400), usa 'indicacao' como fallback
+      let { data, error } = await supabase.from('leads').insert([{
         nome: nomeFinal,
         telefone: telefoneLimpo,
         categoria: tipoNegocio,
-        origem: 'landing_page_parceiros',
+        origem: 'landing_page_parceiros' as any,
         status: 'novo_parceiro',
         tenant_id: tenant_id,
         dados_verificados: false,
         tem_lembrete: false,
         consultoria_vip: false
       }]);
+
+      if (error && error.message.includes('lead_origem')) {
+        console.warn("Enum landing_page_parceiros não existe. Usando 'indicacao' como fallback.");
+        const fallback = await supabase.from('leads').insert([{
+          nome: nomeFinal,
+          telefone: telefoneLimpo,
+          categoria: tipoNegocio,
+          origem: 'indicacao',
+          status: 'novo_parceiro',
+          tenant_id: tenant_id,
+          dados_verificados: false,
+          tem_lembrete: false,
+          consultoria_vip: false
+        }]);
+        error = fallback.error;
+      }
 
       if (error) {
         throw new Error(error.message);
