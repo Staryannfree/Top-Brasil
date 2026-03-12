@@ -156,7 +156,7 @@ const ParceiroDynamicPage = () => {
     <div className="bg-gray-50 font-sans text-[#374151] antialiased relative">
       {/* Botão WhatsApp Fixo */}
       <a 
-        href={`https://wa.me/5562996263600?text=Vim pela página da ${partner?.nome_empresa}`} 
+        href={`https://wa.me/5562996299484?text=Vim pela página da ${partner?.nome_empresa}`} 
         target="_blank" 
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 bg-[#25D366] text-white p-4 rounded-full shadow-2xl z-50 hover:scale-110 transition-transform flex items-center justify-center text-3xl"

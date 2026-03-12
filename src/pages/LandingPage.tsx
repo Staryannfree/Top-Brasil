@@ -66,7 +66,7 @@ const LandingPage = () => {
       setSuccess(true);
       
       // WhatsApp Redirection Logic
-      const numeroWhatsAppTopBrasil = "5562996263600"; 
+      const numeroWhatsAppTopBrasil = "5562996299484"; 
       const mensagemPronta = `Olá! Acabei de simular no site e quero ver a proposta para a placa ${placa}`;
       const linkWhatsapp = `https://wa.me/${numeroWhatsAppTopBrasil}?text=${encodeURIComponent(mensagemPronta)}`;
       
