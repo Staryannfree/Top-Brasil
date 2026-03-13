@@ -8,6 +8,9 @@ import { toast } from 'sonner';
 import { useLeadsLocal } from '@/hooks/useLeadsLocal';
 import type { Lead } from '@/types/lead';
 
+const fmt = (v: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+
 // Component logic maps real leads to view
 
 const STATUS_CONFIG = {
