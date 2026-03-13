@@ -243,10 +243,6 @@ const LandingPage = () => {
               question="A Top Brasil consulta SPC ou Serasa?"
               answer="Não! A proteção veicular é focada no veículo e não no histórico financeiro do motorista. Não fazemos nenhum tipo de consulta ao SPC ou Serasa para aprovar a sua proteção."
             />
-            <FaqItem
-              question="Aceitam motoristas de aplicativo (Uber/99)?"
-              answer="Sim, aceitamos! Sabemos que o seu carro é a sua ferramenta de trabalho. Temos planos específicos para garantir que você rode com tranquilidade."
-            />
           </div>
         </div>
       </section>
