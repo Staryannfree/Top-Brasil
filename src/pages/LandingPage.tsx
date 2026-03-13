@@ -47,7 +47,7 @@ const LandingPage = () => {
     }
 
     setLoading(true);
-    
+
     try {
       const response = await supabase.functions.invoke('processar-lead-landing', {
         body: { nome, placa, telefone }
@@ -58,18 +58,18 @@ const LandingPage = () => {
       }
 
       if (response.data && response.data.success === false) {
-          toast.error(response.data.error || 'Não conseguimos localizar essa placa. Verifique e tente novamente.');
-          setLoading(false);
-          return;
+        toast.error(response.data.error || 'Não conseguimos localizar essa placa. Verifique e tente novamente.');
+        setLoading(false);
+        return;
       }
 
       setSuccess(true);
-      
+
       // WhatsApp Redirection Logic
-      const numeroWhatsAppTopBrasil = "5562996299484"; 
-      const mensagemPronta = `Olá! Acabei de simular no site e quero ver a proposta para a placa ${placa}`;
+      const numeroWhatsAppTopBrasil = "5562996299484";
+      const mensagemPronta = `Olá! Acabei de simular no site e quero ver a proposta [COTAÇÃO] para a placa ${placa}`;
       const linkWhatsapp = `https://wa.me/${numeroWhatsAppTopBrasil}?text=${encodeURIComponent(mensagemPronta)}`;
-      
+
       // Delay slightly for the success state UI to show (optional but recommended)
       setTimeout(() => {
         window.location.href = linkWhatsapp;
@@ -82,7 +82,7 @@ const LandingPage = () => {
       toast.error('Ocorreu um erro ao processar sua cotação. Tente novamente mais tarde.');
     } finally {
       if (!success) {
-         setLoading(false);
+        setLoading(false);
       }
     }
   };
@@ -90,9 +90,9 @@ const LandingPage = () => {
   return (
     <div className="bg-gray-50 font-sans text-[#374151] antialiased relative">
       {/* Botão WhatsApp Fixo */}
-      <a 
-        href="https://wa.me/55SEUNUMERO" 
-        target="_blank" 
+      <a
+        href="https://wa.me/5562996299484"
+        target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 bg-[#25D366] text-white p-4 rounded-full shadow-2xl z-50 hover:scale-110 transition-transform flex items-center justify-center text-3xl"
       >
@@ -127,7 +127,7 @@ const LandingPage = () => {
             <i className="fas fa-star text-yellow-300 mr-1"></i> A Melhor Proteção do Brasil
           </div>
           <h1 className="text-4xl lg:text-6xl font-black mb-6 leading-tight">
-            Seu carro protegido hoje, <br/><span className="text-gray-300">sem burocracia e sem SPC.</span>
+            Seu carro protegido hoje, <br /><span className="text-gray-300">sem burocracia e sem SPC.</span>
           </h1>
           <p className="text-lg text-gray-300 mb-10 max-w-2xl mx-auto">
             Roubo, furto, perda total e guincho 24h. Descubra agora o valor exato para blindar o seu patrimônio 100% pela Tabela FIPE.
@@ -138,58 +138,58 @@ const LandingPage = () => {
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <i className="fas fa-user text-gray-400"></i>
               </div>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                placeholder="Seu Primeiro Nome" 
-                className="w-full pl-12 pr-4 py-4 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#111827] focus:ring-2 focus:ring-[#111827] focus:outline-none text-gray-900 font-bold text-lg" 
+                placeholder="Seu Primeiro Nome"
+                className="w-full pl-12 pr-4 py-4 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#111827] focus:ring-2 focus:ring-[#111827] focus:outline-none text-gray-900 font-bold text-lg"
               />
             </div>
             <div className="flex-1 relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <i className="fas fa-car text-gray-400"></i>
               </div>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={placa}
                 onChange={handlePlacaChange}
-                placeholder="Sua Placa (ABC-1234)" 
-                className="w-full pl-12 pr-4 py-4 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#111827] focus:ring-2 focus:ring-[#111827] focus:outline-none text-gray-900 font-bold uppercase text-lg" 
-                maxLength={8} 
+                placeholder="Sua Placa (ABC-1234)"
+                className="w-full pl-12 pr-4 py-4 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#111827] focus:ring-2 focus:ring-[#111827] focus:outline-none text-gray-900 font-bold uppercase text-lg"
+                maxLength={8}
               />
             </div>
             <div className="flex-1 relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <i className="fab fa-whatsapp text-gray-400"></i>
               </div>
-              <input 
-                type="tel" 
+              <input
+                type="tel"
                 value={telefone}
                 onChange={handleTelefoneChange}
-                placeholder="(99)999999999" 
+                placeholder="(99)999999999"
                 className="w-full pl-12 pr-4 py-4 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#111827] focus:ring-2 focus:ring-[#111827] focus:outline-none text-gray-900 font-bold text-lg"
                 maxLength={14}
               />
             </div>
-            <button 
+            <button
               onClick={enviarLead}
               disabled={loading || success}
               className={`font-black py-4 px-8 rounded-lg shadow-lg transform transition flex items-center justify-center gap-2 ${success ? 'bg-green-500 text-white cursor-not-allowed hover:scale-100' : 'bg-[#EB6607] hover:bg-red-700 text-white hover:scale-105'}`}
             >
-               {success ? (
-                  <><i className="fas fa-check"></i> PRONTO!</>
-               ) : loading ? (
-                 <><i className="fas fa-spinner fa-spin"></i> CALCULANDO...</>
-               ) : (
-                 <>VER VALOR <i className="fas fa-arrow-right"></i></>
-               )}
+              {success ? (
+                <><i className="fas fa-check"></i> PRONTO!</>
+              ) : loading ? (
+                <><i className="fas fa-spinner fa-spin"></i> CALCULANDO...</>
+              ) : (
+                <>VER VALOR <i className="fas fa-arrow-right"></i></>
+              )}
             </button>
           </div>
           {success && (
-              <p className="text-green-400 font-bold mt-4 text-lg animate-fade-in">
-                 🎉 Pronto! Verifique o seu WhatsApp agora mesmo com a sua proposta.
-              </p>
+            <p className="text-green-400 font-bold mt-4 text-lg animate-fade-in">
+              🎉 Pronto! Verifique o seu WhatsApp agora mesmo com a sua proposta.
+            </p>
           )}
           <p className="text-sm text-gray-400 mt-4"><i className="fas fa-shield-alt text-[#25D366]"></i> Mais de 5.000 veículos protegidos.</p>
         </div>
@@ -235,18 +235,18 @@ const LandingPage = () => {
             <h2 className="text-3xl font-black text-[#111827]">Dúvidas Frequentes</h2>
           </div>
           <div className="space-y-4">
-            <FaqItem 
-              question="A Top Brasil consulta SPC ou Serasa?" 
-              answer="Não! A proteção veicular é focada no veículo e não no histórico financeiro do motorista. Não fazemos nenhum tipo de consulta ao SPC ou Serasa para aprovar a sua proteção." 
+            <FaqItem
+              question="A Top Brasil consulta SPC ou Serasa?"
+              answer="Não! A proteção veicular é focada no veículo e não no histórico financeiro do motorista. Não fazemos nenhum tipo de consulta ao SPC ou Serasa para aprovar a sua proteção."
             />
-            <FaqItem 
-              question="Aceitam motoristas de aplicativo (Uber/99)?" 
-              answer="Sim, aceitamos! Sabemos que o seu carro é a sua ferramenta de trabalho. Temos planos específicos para garantir que você rode com tranquilidade." 
+            <FaqItem
+              question="Aceitam motoristas de aplicativo (Uber/99)?"
+              answer="Sim, aceitamos! Sabemos que o seu carro é a sua ferramenta de trabalho. Temos planos específicos para garantir que você rode com tranquilidade."
             />
           </div>
         </div>
       </section>
-      
+
       {/* Footer */}
       <footer className="bg-white py-10 border-t border-gray-100 mt-10">
         <div className="max-w-6xl mx-auto px-4 text-center">
@@ -254,7 +254,7 @@ const LandingPage = () => {
             <img src={logoTopBrasil} alt="Logo Top Brasil" className="h-8 w-auto" />
           </div>
           <p className="text-gray-500 text-sm">
-            © 2024 Top Brasil Proteção Veicular. Todos os direitos reservados. <br/>
+            © 2024 Top Brasil Proteção Veicular. Todos os direitos reservados. <br />
             Cotação 100% Segura e Digital.
           </p>
         </div>
