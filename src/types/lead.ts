@@ -67,6 +67,10 @@ export interface Lead {
   valor_cota_participacao?: number | null;
   valor_mensalidade?: number | null;
   link_cotacao?: string | null;
+  motor?: string | null;
+  combustivel?: string | null;
+  segmento?: string | null;
+  situacao?: string | null;
 }
 
 export const KANBAN_COLUMNS: { id: LeadStatus; title: string }[] = [

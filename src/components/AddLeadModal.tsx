@@ -29,6 +29,13 @@ export function AddLeadModal({ open, onOpenChange, onSave, initialData }: AddLea
   const [atendente, setAtendente] = useState(ATENDENTES[0]);
   const [origem, setOrigem] = useState<LeadOrigem>('indicacao');
   const [consultoriaVip, setConsultoriaVip] = useState(false);
+  const [cor, setCor] = useState('');
+  const [combustivel, setCombustivel] = useState('');
+  const [chassi, setChassi] = useState('');
+  const [motor, setMotor] = useState('');
+  const [cilindradas, setCilindradas] = useState('');
+  const [segmento, setSegmento] = useState('');
+  const [cidade, setCidade] = useState('');
 
   useEffect(() => {
     if (open && initialData) {
@@ -38,6 +45,13 @@ export function AddLeadModal({ open, onOpenChange, onSave, initialData }: AddLea
       setAnoModelo(initialData.ano_modelo || initialData.veiculo_ano || '');
       setValorFipe(initialData.valor_fipe ? String(initialData.valor_fipe) : '');
       setCategoria(initialData.categoria || 'Particular');
+      setCor(initialData.cor || initialData.veiculo_cor || '');
+      setCombustivel(initialData.combustivel || '');
+      setChassi(initialData.chassi_parcial || '');
+      setMotor(initialData.motor || '');
+      setCilindradas(initialData.cilindradas || '');
+      setSegmento(initialData.segmento || '');
+      setCidade(initialData.cidade || initialData.veiculo_cidade || '');
     } else if (open && !initialData) {
       reset();
     }
@@ -47,6 +61,7 @@ export function AddLeadModal({ open, onOpenChange, onSave, initialData }: AddLea
     setNome(''); setTelefone(''); setPlaca(''); setMarca('');
     setModelo(''); setAnoModelo(''); setValorFipe(''); setCategoria('Particular');
     setAtendente(ATENDENTES[0]); setOrigem('indicacao'); setConsultoriaVip(false);
+    setCor(''); setCombustivel(''); setChassi(''); setMotor(''); setCilindradas(''); setSegmento(''); setCidade('');
   };
 
   const handleSave = () => {
@@ -56,9 +71,14 @@ export function AddLeadModal({ open, onOpenChange, onSave, initialData }: AddLea
       placa: placa.toUpperCase() || null, marca: marca || null,
       modelo: modelo || null, ano_fabricacao: null, ano_modelo: anoModelo || null,
       valor_fipe: valorFipe ? Number(valorFipe) : null, codigo_fipe: null,
-      categoria: categoria || null, cilindradas: null,
+      categoria: categoria || null, cilindradas: cilindradas || null,
       atendente, origem, temLembrete: false,
       valorAdesao: null, valorMensalidade: null, dataFechamento: null, consultoriaVip,
+      cor: cor || null, chassi_parcial: chassi || null, motor: motor || null,
+      segmento: segmento || null, combustivel: combustivel || null,
+      cidade: cidade || null, veiculo_cidade: cidade || null,
+      veiculo_cor: cor || null, veiculo_marca: marca || null,
+      veiculo_modelo: modelo || null, veiculo_ano: anoModelo || null
     });
     reset();
     onOpenChange(false);

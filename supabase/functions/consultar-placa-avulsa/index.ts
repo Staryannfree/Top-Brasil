@@ -74,17 +74,18 @@ Deno.serve(async (req) => {
 
         const data = await response.json();
 
-        if (data.codigo !== 1) {
+        if (data.codigo !== 1 && (!data.informacoes_veiculo || !data.informacoes_veiculo.marca)) {
+            console.warn(`Placa não encontrada ou erro API: ${data.mensagem || data.msg}`);
             return new Response(JSON.stringify({
                 success: false,
-                error: data.mensagem || 'Placa não localizada ou erro na API PlacaFipe'
+                error: data.mensagem || data.msg || 'Placa não localizada ou erro na API PlacaFipe'
             }), {
                 status: 200,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             });
         }
 
-        const info = data.informacoes_veiculo;
+        const info = data.informacoes_veiculo || {};
         const fipeArray = data.fipe || [];
 
         let rawFipeValue = 0;
@@ -95,14 +96,20 @@ Deno.serve(async (req) => {
         }
 
         const insertData = {
-            id: crypto.randomUUID(), // optional, postgres generates it anyway if omitted
             placa: cleanPlaca,
-            marca: info.marca,
-            modelo: info.modelo,
-            ano: info.ano,
-            cidade: `${info.municipio} - ${info.uf}`,
+            marca: info.marca || '',
+            modelo: info.modelo || '',
+            ano: info.ano || '',
+            cidade: info.municipio ? `${info.municipio} - ${info.uf}` : '',
             valor_fipe: rawFipeValue,
-            created_at: new Date().toISOString() // will be overridden by DB default but set just in case if no policy
+            cor: info.cor || '',
+            combustivel: info.combustivel || '',
+            chassi_parcial: info.chassi || '',
+            motor: info.motor || '',
+            cilindradas: info.cilindradas || '',
+            segmento: info.segmento || '',
+            situacao: info.situacao || '',
+            created_at: new Date().toISOString()
         };
 
         // Salvar no Banco de Dados
@@ -114,7 +121,11 @@ Deno.serve(async (req) => {
 
         if (dbError) {
             console.error("Erro ao salvar dados no Supabase placas_consultadas:", dbError.message);
-            throw dbError;
+            // Even if DB fails, return API data to user
+            return new Response(JSON.stringify({ success: true, data: insertData, rawData: data }), {
+                status: 200,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
         }
 
         return new Response(JSON.stringify({ success: true, data: dbData, rawData: data }), {
