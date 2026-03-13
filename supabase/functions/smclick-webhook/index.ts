@@ -124,6 +124,7 @@ Deno.serve(async (req) => {
             }
         }
 
+
         // Devolve os dados mastigados para o SMClick (Com as chaves de leads-webhook)
         return new Response(JSON.stringify({
             encontrado: true,

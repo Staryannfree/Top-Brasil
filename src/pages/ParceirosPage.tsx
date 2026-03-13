@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import logoTopBrasil from '@/logo/topbrasil.png';
@@ -19,6 +19,10 @@ const formatTelefone = (val: string) => {
 };
 
 const ParceirosPage = () => {
+  useEffect(() => {
+    document.title = "Top Brasil Parceiro";
+  }, []);
+
   const [nomeResp, setNomeResp] = useState('');
   const [empresa, setEmpresa] = useState('');
   const [telefone, setTelefone] = useState('');

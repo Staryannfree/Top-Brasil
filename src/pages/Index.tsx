@@ -137,6 +137,10 @@ function AppSidebar({ currentView, setCurrentView, navItems, userRole, onLogout 
 
 /* ── Main Page ── */
 const Index = () => {
+  useEffect(() => {
+    document.title = "Top Brasil CRM";
+  }, []);
+
   const {
     leads, allLeads, search, setSearch, categoryFilter, setCategoryFilter,
     atendenteFilter, setAtendenteFilter, renewalFilter, setRenewalFilter,
