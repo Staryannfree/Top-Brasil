@@ -141,6 +141,9 @@ Deno.serve(async (req) => {
             // Aliases de Resiliência: Para evitar que o SMClick Flow quebre se estiver mapeando os nomes antigos
             veiculo_placa: lead.placa,
             placa_digitada: lead.placa,
+            nome_primeiro: lead.nome ? lead.nome.split(' ')[0] : 'Motorista',
+            marca: lead.veiculo_marca,
+            modelo: lead.veiculo_modelo,
             mensalidade: lead.valor_mensalidade,
             cota_participacao: lead.valor_cota_participacao,
 
