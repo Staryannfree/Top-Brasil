@@ -112,11 +112,10 @@ Deno.serve(async (req) => {
                             )
                         );
 
-                        // Dispara em paralelo para não travar a resposta do webhook
-                        Promise.allSettled(requests).then(results => {
-                            const successCount = results.filter(r => r.status === 'fulfilled' && (r as any).value.ok).length;
-                            console.log(`smclick-webhook: Writeback finalizado (${successCount}/${fieldsToWrite.length} sucessos)`);
-                        });
+                        // AWAIT garante que a função Edge não termine e corte as requisições no meio!
+                        const results = await Promise.allSettled(requests);
+                        const successCount = results.filter(r => r.status === 'fulfilled' && (r as any).value.ok).length;
+                        console.log(`smclick-webhook: Writeback finalizado (${successCount}/${fieldsToWrite.length} sucessos)`);
                     }
                 }
             } catch (syncError) {
