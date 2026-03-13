@@ -136,6 +136,12 @@ Deno.serve(async (req) => {
             valor_cota_participacao: lead.valor_cota_participacao,
             valor_mensalidade: lead.valor_mensalidade,
             placa: lead.placa,
+            
+            // Aliases de Resiliência: Para evitar que o SMClick Flow quebre se estiver mapeando os nomes antigos
+            veiculo_placa: lead.placa,
+            mensalidade: lead.valor_mensalidade,
+            cota_participacao: lead.valor_cota_participacao,
+
             lead_id: lead.id,
             status: lead.status,
             combustivel: lead.combustivel,
