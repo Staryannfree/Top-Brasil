@@ -31,7 +31,12 @@ Deno.serve(async (req) => {
         }
 
         // Limpa o telefone para deixar só os números
-        const cleanPhone = String(telefoneCru).replace(/\D/g, '');
+        let cleanPhone = String(telefoneCru).replace(/\D/g, '');
+        
+        // Garante que o telefone tenha o código do Brasil (55) para a API do SMClick funcionar
+        if (cleanPhone.length >= 10 && cleanPhone.length <= 11 && !cleanPhone.startsWith('55')) {
+            cleanPhone = '55' + cleanPhone;
+        }
 
         // BUSCA A REGRINHA DE OURO: O ÚLTIMO LEAD DESSE TELEFONE
         const { data: lead, error } = await supabase
