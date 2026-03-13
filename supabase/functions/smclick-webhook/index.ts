@@ -90,6 +90,7 @@ Deno.serve(async (req) => {
                     addField('VALOR_COTA_PARTICIPACAO', lead.valor_cota_participacao);
                     addField('VALOR_MENSALIDADE', lead.valor_mensalidade);
                     addField('PLACA_CLIENTE', lead.placa);
+                    addField('PLACA_DIGITADA', lead.placa); // Adicionado para garantir compatibilidade com fluxos antigos
 
                     if (fieldsToWrite.length > 0) {
                         console.log(`smclick-webhook: Sincronizando ${fieldsToWrite.length} campos para ${cleanPhone}`);
@@ -139,6 +140,7 @@ Deno.serve(async (req) => {
             
             // Aliases de Resiliência: Para evitar que o SMClick Flow quebre se estiver mapeando os nomes antigos
             veiculo_placa: lead.placa,
+            placa_digitada: lead.placa,
             mensalidade: lead.valor_mensalidade,
             cota_participacao: lead.valor_cota_participacao,
 
