@@ -140,22 +140,27 @@ Deno.serve(async (req) => {
             veiculo_cidade: vehicleInfo ? `${vehicleInfo.municipio} - ${vehicleInfo.uf}` : null
         };
 
-        const { data: searchLeads } = await supabase.from('leads').select('id, placa')
+        const { data: searchLeads, error: searchError } = await supabase.from('leads').select('id, placa')
             .eq('tenant_id', tenant_id).ilike('telefone', `%${cleanPhone.slice(-8)}%`).order('created_at', { ascending: false });
+
+        if (searchError) throw new Error(`Search error: ${searchError.message}`);
 
         if (searchLeads && searchLeads.length > 0) {
             const lead = searchLeads[0];
             const storedPlaca = lead.placa ? lead.placa.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
             if (!storedPlaca || storedPlaca === cleanPlaca) {
                 delete leadData.status;
-                await supabase.from('leads').update(leadData).eq('id', lead.id);
+                const { error: updateError } = await supabase.from('leads').update(leadData).eq('id', lead.id);
+                if (updateError) throw new Error(`Update error: ${updateError.message}`);
                 console.log(`[DB] Lead atualizado: ${lead.id}`);
             } else {
-                await supabase.from('leads').insert(leadData);
+                const { error: insertError } = await supabase.from('leads').insert(leadData);
+                if (insertError) throw new Error(`Insert error (diff car): ${insertError.message}`);
                 console.log(`[DB] Novo lead (carro diferente)`);
             }
         } else {
-            await supabase.from('leads').insert(leadData);
+            const { error: insertError } = await supabase.from('leads').insert(leadData);
+            if (insertError) throw new Error(`Insert error (new lead): ${insertError.message}`);
             console.log(`[DB] Novo lead inserido`);
         }
 
