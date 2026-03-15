@@ -23,16 +23,6 @@ Deno.serve(async (req) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
         );
 
-        // Get user_id from the authorization header
-        const authHeader = req.headers.get('Authorization');
-        if (!authHeader) {
-            throw new Error('No authorization header');
-        }
-        const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
-        if (authError || !user) {
-            throw new Error('Unauthorized');
-        }
-
         const { placa } = await req.json();
 
         if (!placa) {
@@ -53,7 +43,7 @@ Deno.serve(async (req) => {
         const cleanPlaca = placa.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
         const placaFipeUrl = 'https://api.placafipe.com.br/getplacafipe';
 
-        console.log(`Consultando placa avulsa oficial: ${cleanPlaca} para o usuario ${user.id}`);
+        console.log(`Consultando placa avulsa oficial: ${cleanPlaca}`);
 
         const response = await fetch(placaFipeUrl, {
             method: 'POST',
@@ -89,10 +79,41 @@ Deno.serve(async (req) => {
         const fipeArray = data.fipe || [];
 
         let rawFipeValue = 0;
-        if (fipeArray.length > 0 && fipeArray[0].valor) {
-            const valorStr = String(fipeArray[0].valor);
-            const apenasDigitos = valorStr.replace(/[^\d]/g, '');
-            rawFipeValue = parseInt(apenasDigitos, 10) / 100;
+        let codigoFipe = '';
+        let mesReferencia = '';
+        
+        if (fipeArray.length > 0) {
+            const firstFipe = fipeArray[0];
+            if (firstFipe.valor) {
+                const valorStr = String(firstFipe.valor);
+                const apenasDigitos = valorStr.replace(/[^\d]/g, '');
+                rawFipeValue = parseInt(apenasDigitos, 10) / 100;
+            }
+            codigoFipe = firstFipe.codigo || '';
+            mesReferencia = firstFipe.mes_referencia || '';
+        }
+
+        // Histórico de Preços (Desvalorizômetro)
+        let historicoPrecos = null;
+        if (data.desvalorizometro) {
+            try {
+                const dvResponse = await fetch('https://api.placafipe.com.br/getdesvalorizometro', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        desvalorizometro: data.desvalorizometro,
+                        token: placaFipeToken
+                    })
+                });
+                if (dvResponse.ok) {
+                    const dvData = await dvResponse.json();
+                    if (dvData.desvalorizometro && dvData.desvalorizometro.tabelas) {
+                        historicoPrecos = dvData.desvalorizometro.tabelas;
+                    }
+                }
+            } catch (dvErr) {
+                console.error("Erro ao buscar desvalorizometro:", dvErr.message);
+            }
         }
 
         const insertData = {
@@ -109,6 +130,27 @@ Deno.serve(async (req) => {
             cilindradas: info.cilindradas || '',
             segmento: info.segmento || '',
             situacao: info.situacao || '',
+            codigo_fipe: codigoFipe,
+            mes_referencia: mesReferencia,
+            procedencia: info.procedencia || '',
+            tipo_veiculo: info.tipo_veiculo || '',
+            
+            // Novos campos técnicos (Perícia Total)
+            potencia: info.potencia || '',
+            n_motor: info.n_motor || '',
+            caixa_cambio: info.caixa_cambio || '',
+            pbt: info.pbt || '',
+            cmt: info.cmt || '',
+            capacidade_carga: info.capacidade_de_carga || '',
+            n_eixos: info.quantidade_de_eixos || '',
+            n_passageiros: info.quantidade_passageiro || '',
+            carroceria: info.carroceria || '',
+            tipo_carroceria: info.tipo_carroceria || '',
+            tipo_montagem: info.tipo_montagem || '',
+            situacao_chassi: info.situacao_do_chassi || '',
+            eixo_traseiro_dif: info.eixo_traseiro_dif || '',
+            historico_precos: historicoPrecos,
+            
             created_at: new Date().toISOString()
         };
 

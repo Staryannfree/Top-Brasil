@@ -137,7 +137,9 @@ Deno.serve(async (req) => {
             valor_mensalidade: valor_mensalidade || null,
             valor_cota_participacao: valor_cota_participacao || null,
             veiculo_cor: vehicleInfo?.cor || null,
-            veiculo_cidade: vehicleInfo ? `${vehicleInfo.municipio} - ${vehicleInfo.uf}` : null
+            veiculo_cidade: vehicleInfo ? `${vehicleInfo.municipio} - ${vehicleInfo.uf}` : null,
+            cidade_final: vehicleInfo?.municipio || null,
+            estado_final: vehicleInfo?.uf || null
         };
 
         const { data: searchLeads, error: searchError } = await supabase.from('leads').select('id, placa')

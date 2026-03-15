@@ -4,11 +4,19 @@
     "version": "1.0",
     "description": "Integração automática entre o CRM e PowerCRM usando a sessão ativa do navegador.",
     "permissions": [
-        "storage"
+        "storage",
+        "activeTab",
+        "scripting"
     ],
     "host_permissions": [
         "https://yfqrpfmoworgncfsqkgy.supabase.co/*",
         "https://app.powercrm.com.br/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": ["*://app.powercrm.com.br/*"],
+            "js": ["content.js"]
+        }
     ],
     "action": {
         "default_popup": "popup.html",

@@ -71,6 +71,8 @@ export interface Lead {
   combustivel?: string | null;
   segmento?: string | null;
   situacao?: string | null;
+  cidade_final?: string | null;
+  estado_final?: string | null;
 }
 
 export const KANBAN_COLUMNS: { id: LeadStatus; title: string }[] = [

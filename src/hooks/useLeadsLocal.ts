@@ -60,6 +60,8 @@ export function useLeadsLocal() {
           createdAt: n.created_at,
         })),
         atendente: lead.vendedor_id,
+        cidade_final: lead.cidade_final,
+        estado_final: lead.estado_final,
       })) as Lead[];
     },
     enabled: !!profile?.tenant_id,
@@ -179,6 +181,8 @@ export function useLeadsLocal() {
         valor_mensalidade: lead.valorMensalidade,
         data_fechamento: lead.dataFechamento,
         consultoria_vip: lead.consultoriaVip,
+        cidade_final: lead.cidade_final,
+        estado_final: lead.estado_final,
         dados_verificados: !!(lead.marca && lead.modelo),
         status: 'novo_lead',
       };
@@ -222,6 +226,8 @@ export function useLeadsLocal() {
         valor_mensalidade: updated.valorMensalidade,
         data_fechamento: updated.dataFechamento,
         consultoria_vip: updated.consultoriaVip,
+        cidade_final: updated.cidade_final,
+        estado_final: updated.estado_final,
         motivo_perda: updated.motivoPerda,
         dados_verificados: updated.dadosVerificados,
         status: updated.status,

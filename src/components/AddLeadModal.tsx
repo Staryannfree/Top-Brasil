@@ -36,6 +36,7 @@ export function AddLeadModal({ open, onOpenChange, onSave, initialData }: AddLea
   const [cilindradas, setCilindradas] = useState('');
   const [segmento, setSegmento] = useState('');
   const [cidade, setCidade] = useState('');
+  const [estadoFinal, setEstadoFinal] = useState('');
 
   useEffect(() => {
     if (open && initialData) {
@@ -51,7 +52,8 @@ export function AddLeadModal({ open, onOpenChange, onSave, initialData }: AddLea
       setMotor(initialData.motor || '');
       setCilindradas(initialData.cilindradas || '');
       setSegmento(initialData.segmento || '');
-      setCidade(initialData.cidade || initialData.veiculo_cidade || '');
+      setCidade(initialData.cidade_final || initialData.veiculo_cidade || initialData.cidade || '');
+      setEstadoFinal(initialData.estado_final || initialData.estado || '');
     } else if (open && !initialData) {
       reset();
     }
@@ -61,7 +63,7 @@ export function AddLeadModal({ open, onOpenChange, onSave, initialData }: AddLea
     setNome(''); setTelefone(''); setPlaca(''); setMarca('');
     setModelo(''); setAnoModelo(''); setValorFipe(''); setCategoria('Particular');
     setAtendente(ATENDENTES[0]); setOrigem('indicacao'); setConsultoriaVip(false);
-    setCor(''); setCombustivel(''); setChassi(''); setMotor(''); setCilindradas(''); setSegmento(''); setCidade('');
+    setCor(''); setCombustivel(''); setChassi(''); setMotor(''); setCilindradas(''); setSegmento(''); setCidade(''); setEstadoFinal('');
   };
 
   const handleSave = () => {
@@ -77,6 +79,7 @@ export function AddLeadModal({ open, onOpenChange, onSave, initialData }: AddLea
       cor: cor || null, chassi_parcial: chassi || null, motor: motor || null,
       segmento: segmento || null, combustivel: combustivel || null,
       cidade: cidade || null, veiculo_cidade: cidade || null,
+      cidade_final: cidade || null, estado_final: estadoFinal || null,
       veiculo_cor: cor || null, veiculo_marca: marca || null,
       veiculo_modelo: modelo || null, veiculo_ano: anoModelo || null
     });
@@ -107,6 +110,10 @@ export function AddLeadModal({ open, onOpenChange, onSave, initialData }: AddLea
           <div className="grid grid-cols-2 gap-3">
             <div><Label>Ano Modelo</Label><Input value={anoModelo} onChange={(e) => setAnoModelo(e.target.value)} placeholder="2022" /></div>
             <div><Label>Valor FIPE</Label><Input type="number" value={valorFipe} onChange={(e) => setValorFipe(e.target.value)} placeholder="120000" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><Label>Cidade de circulação</Label><Input value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Ex: Goiânia" /></div>
+            <div><Label>Estado de circulação</Label><Input value={estadoFinal} onChange={(e) => setEstadoFinal(e.target.value)} placeholder="Ex: GO" maxLength={2} className="uppercase" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

@@ -8,9 +8,10 @@
       --bg: #111827;
       --card: #1f2937;
       --text: #f3f4f6;
+      --success: #10b981;
     }
     body {
-      width: 320px;
+      width: 380px;
       margin: 0;
       padding: 16px;
       background: var(--bg);
@@ -20,111 +21,247 @@
     .header {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 12px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       border-bottom: 1px solid #374151;
       padding-bottom: 12px;
     }
-    .logo {
-      width: 32px;
-      height: 32px;
-      background: var(--primary);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      color: #000;
-    }
     h2 {
-      font-size: 16px;
+      font-size: 15px;
       margin: 0;
       color: var(--text);
     }
-    .status-card {
-      background: var(--card);
-      border: 1px solid #374151;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      animation: fadeIn 0.3s ease;
+
+    #leads-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 350px;
+        overflow-y: auto;
+        padding-right: 4px;
+        margin-bottom: 16px;
     }
-    .label {
-      font-size: 12px;
-      color: #9ca3af;
-      margin-bottom: 4px;
+
+    /* Scrollbar */
+    #leads-list::-webkit-scrollbar { width: 4px; }
+    #leads-list::-webkit-scrollbar-track { background: transparent; }
+    #leads-list::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+
+    .lead-card {
+        background: var(--card);
+        border: 1px solid #374151;
+        border-radius: 10px;
+        padding: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: border-color 0.2s;
     }
-    .value {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 8px;
+    .lead-card:hover {
+        border-color: #4b5563;
     }
-    .btn {
-      width: 100%;
-      background: var(--primary);
-      color: #000;
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
+    .lead-info {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
     }
-    .btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      filter: brightness(1.1);
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    .lead-name {
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 2px;
     }
-    .btn:disabled {
-      background: #4b5563;
-      cursor: not-allowed;
+    .lead-vehicle {
+      font-size: 11px;
+      color: #9ca3af;
+      font-weight: normal;
     }
-    .btn-secondary {
-      background: transparent;
-      border: 1px solid #374151;
-      color: var(--text);
-      margin-top: 8px;
+    .lead-meta {
+        font-size: 11px;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
+    .status-badge {
+        font-size: 9px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--primary); border: 1px solid rgba(245, 158, 11, 0.2); }
+    .status-done { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+
+    .lead-actions {
+        display: flex;
+        gap: 8px;
+        margin-left: 12px;
+        flex-shrink: 0;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s, background-color 0.2s;
+        font-size: 14px;
+    }
+    .action-btn:hover:not(:disabled) { transform: scale(1.1); filter: brightness(1.1); }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .sync-btn { background: var(--primary); color: #000; }
+    .sync-btn.done { background: var(--success); cursor: default; }
+
+    .magic-btn { background: #10b981; color: white; }
+    .magic-btn:hover:not(:disabled) { background: #059669; }
+
+    .vehicle-type-select {
+        background: #374151;
+        color: #f3f4f6;
+        border: 1px solid #4b5563;
+        border-radius: 4px;
+        font-size: 10px;
+        padding: 2px 4px;
+        margin-top: 4px;
+        cursor: pointer;
+        outline: none;
+    }
+    .vehicle-type-select:focus {
+        border-color: var(--primary);
+    }
+
     .log-area {
       font-family: 'Fira Code', monospace;
-      font-size: 11px;
+      font-size: 10px;
       background: #000;
-      padding: 10px;
+      padding: 8px;
       border-radius: 6px;
-      margin-top: 12px;
       max-height: 100px;
       overflow-y: auto;
       color: #10b981;
       border: 1px solid #1f2937;
     }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } }
+    .log-msg { margin-bottom: 2px; }
+    
+    .btn-inspect {
+      background: none;
+      border: 1px solid #4b5563;
+      color: #9ca3af;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .btn-inspect:hover {
+      background: #374151;
+      color: #f3f4f6;
+      border-color: #6b7280;
+    }
+    
+    .login-config {
+      margin-top: 12px;
+      padding: 10px;
+      background: rgba(245, 158, 11, 0.05);
+      border: 1px dashed rgba(245, 158, 11, 0.3);
+      border-radius: 8px;
+    }
+    .login-config h3 {
+      font-size: 11px;
+      margin: 0 0 8px 0;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .login-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .login-input {
+      flex: 1;
+      background: #000;
+      border: 1px solid #374151;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 10px;
+      padding: 4px 6px;
+      outline: none;
+    }
+    .login-input:focus { border-color: var(--primary); }
+    .btn-save-login {
+      width: 100%;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      border-radius: 4px;
+      padding: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .auto-login-status {
+      font-size: 9px;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4b5563;
+    }
+    .status-dot.active { background: var(--success); box-shadow: 0 0 5px var(--success); }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="logo">TB</div>
-    <h2>PowerCRM Bridge</h2>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <div style="width: 20px; height: 20px; background: var(--primary); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; font-size: 10px;">TB</div>
+      <span style="font-weight: bold; font-size: 14px;">PowerCRM Bridge</span>
+    </div>
+    <div style="display: flex; gap: 6px;">
+      <button class="btn-inspect" id="btn-inspect" title="Inspeciona IDs da página aberta">🔍 Inspecionar</button>
+      <button id="btn-refresh" style="background:none; border:none; cursor:pointer;" title="Atualizar lista">🔄</button>
+    </div>
   </div>
 
-  <div id="lead-display" class="status-card" style="display: none;">
-    <div class="label">Lead Localizado:</div>
-    <div id="lead-name" class="value">Carregando...</div>
-    <div id="lead-veiculo" class="label">Placa: ---</div>
+  <div id="leads-list">
+    <div style="text-align:center; padding:20px; color:#9ca3af; font-size:12px;">Carregando...</div>
   </div>
 
-  <button id="btn-sync" class="btn">
-    <span>⚡</span> Gerar Cotação (PowerCRM)
-  </button>
+  <div class="login-config">
+    <h3>🔐 Auto-Login PowerCRM</h3>
+    <div class="login-row">
+      <input type="text" id="login-email" class="login-input" placeholder="E-mail">
+      <input type="password" id="login-pass" class="login-input" placeholder="Senha">
+    </div>
+    <button class="btn-save-login" id="btn-save-login">ATIVAR AUTO-LOGIN</button>
+    <div class="auto-login-status">
+      <div id="login-dot" class="status-dot"></div>
+      <span id="login-text" style="color:#9ca3af">Auto-login desativado</span>
+    </div>
+  </div>
 
-  <button id="btn-refresh" class="btn btn-secondary">
-    <span>🔄</span> Buscar Lead Pendente
-  </button>
-
-  <div id="log" class="log-area">Aguardando comando...</div>
+  <div style="padding: 12px; border-top: 1px solid #1f2937;">
+    <div id="log" class="log-area">Aguardando comando...</div>
+  </div>
 
   <script src="popup.js"></script>
 </body>

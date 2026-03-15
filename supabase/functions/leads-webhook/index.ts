@@ -103,17 +103,49 @@ Deno.serve(async (req) => {
     const action = body.action || url.searchParams.get('action');
     const newStatus = body.status || url.searchParams.get('status');
 
-    // --- AÇÃO: Alterar Status ---
-    if (action === 'set_status' && newStatus) {
-      console.log(`Ação solicitada: set_status (${newStatus})`);
-      const cleanPhone = telefone ? String(telefone).replace(/\D/g, '') : null;
-      const cleanPlaca = placaBody ? placaBody.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : null;
+    // Extrair Localização (Smclick)
+    let rawCidade = body.cidade_digitada || url.searchParams.get('cidade_digitada') || body.p_cidade_digitada;
+    let rawEstado = body.estado_digitado || url.searchParams.get('estado_digitado') || body.estado_selecionado || url.searchParams.get('estado_selecionado') || body.p_estado_digitado;
+    
+    // Limpeza de placeholders Smclick literal "{variavel}" ou string "undefined"
+    const cleanPlaceholder = (val: any) => {
+      if (!val) return undefined;
+      const s = String(val).trim();
+      if (s === '' || s.startsWith('{') || s.toLowerCase() === 'undefined' || s.toLowerCase() === 'null') {
+        return undefined;
+      }
+      return s;
+    };
 
+    const cidade_digitada = cleanPlaceholder(rawCidade);
+    const estado_digitado = cleanPlaceholder(rawEstado);
+    
+    // Sanitização de telefone
+    let rawPhone = telefone ? String(telefone).trim() : undefined;
+    const isPhonePlaceholder = rawPhone && (rawPhone.startsWith('{') || rawPhone.toLowerCase() === 'undefined');
+    const cleanPhone = (rawPhone && !isPhonePlaceholder) ? rawPhone.replace(/\D/g, '') : null;
+
+    // --- AÇÃO: Alterar Status (e localização se vier junto) ---
+    if (action === 'set_status' && newStatus) {
+      console.log(`Ação solicitada: set_status (${newStatus}) | Tel: ${cleanPhone || (isPhonePlaceholder ? '[PLACEHOLDER]' : 'N/A')}`);
+      
+      // Se for um placeholder no modo teste, retorna sucesso simulado
+      if (isPhonePlaceholder) {
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: `Simulação: Status seria alterado para ${newStatus} em produção.` 
+        }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const cleanPlaca = placaBody ? cleanPlaceholder(placaBody)?.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : null;
       let query = supabase.from('leads').select('id').eq('tenant_id', tenant_id);
-      if (cleanPhone) query = query.ilike('telefone', `%${cleanPhone.slice(-8)}%`);
+      
+      if (cleanPhone && cleanPhone.length >= 8) query = query.ilike('telefone', `%${cleanPhone.slice(-8)}%`);
       else if (cleanPlaca) query = query.eq('placa', cleanPlaca);
       else {
-        return new Response(JSON.stringify({ error: 'telefone ou placa obrigatórios para set_status' }), {
+        return new Response(JSON.stringify({ error: 'telefone (min 8 dígitos) ou placa obrigatórios para set_status' }), {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
@@ -121,14 +153,24 @@ Deno.serve(async (req) => {
       const { data: leadToUpdate } = await query.order('created_at', { ascending: false }).limit(1).maybeSingle();
 
       if (leadToUpdate) {
-        const { error } = await supabase.from('leads').update({ status: newStatus }).eq('id', leadToUpdate.id);
+        const updateObj: any = { status: newStatus };
+        if (cidade_digitada) {
+          updateObj.cidade_final = cidade_digitada;
+          updateObj.veiculo_cidade = cidade_digitada;
+        }
+        if (estado_digitado) {
+          updateObj.estado_final = estado_digitado;
+          updateObj.estado = estado_digitado;
+        }
+
+        const { error } = await supabase.from('leads').update(updateObj).eq('id', leadToUpdate.id);
         if (error) throw error;
-        console.log(`Status do lead ${leadToUpdate.id} atualizado para: ${newStatus}`);
+        console.log(`Lead ${leadToUpdate.id} atualizado: Status=${newStatus}, Cidade=${cidade_digitada || 'manter'}`);
         return new Response(JSON.stringify({ success: true, message: `Status atualizado para ${newStatus}` }), {
           status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      return new Response(JSON.stringify({ error: 'lead não encontrado para atualização de status' }), {
+      return new Response(JSON.stringify({ error: 'lead não encontrado para atualização' }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -138,6 +180,16 @@ Deno.serve(async (req) => {
     if (telefone) leadData.telefone = telefone;
     if (placaBody) leadData.placa = placaBody;
     if (protocolo) leadData.protocolo = protocolo;
+    
+    // Incluir localização se vier no corpo/URL inicial
+    if (cidade_digitada) {
+      leadData.cidade_final = cidade_digitada;
+      leadData.veiculo_cidade = cidade_digitada;
+    }
+    if (estado_digitado) {
+      leadData.estado_final = estado_digitado;
+      leadData.estado = estado_digitado;
+    }
 
     // --- PASSO 1: Identificar Lead (Deduplicação Inteligente: Telefone + Placa) ---
     const incomingPlacaClean = placaBody ? placaBody.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
@@ -220,6 +272,8 @@ Deno.serve(async (req) => {
                 sub_segmento: info.sub_segmento,
                 municipio: info.municipio,
                 uf: info.uf,
+                cidade_final: info.municipio,
+                estado_final: info.uf,
                 codigo_fipe: fipeArray.length > 0 ? fipeArray[0].codigo_fipe : null,
                 mes_referencia: fipeArray.length > 0 ? fipeArray[0].mes_referencia : null,
                 desvalorizometro: fipeArray.length > 0 ? fipeArray[0].desvalorizometro : null,
@@ -262,10 +316,13 @@ Deno.serve(async (req) => {
     }
 
     // --- PASSO 2: Enriquecimento PlacaFipe ---
-    // Consultar APENAS se a placa da requisição for diferente da placa já salva no banco
+    // Consultar se a placa da requisição for diferente da placa salva OU se o lead ainda não tem marca/modelo (dados técnicos)
     const storedPlacaClean = finalLead._storedPlaca
       ? String(finalLead._storedPlaca).replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
-    const deveConsultarFipe = incomingPlacaClean && incomingPlacaClean !== storedPlacaClean;
+    
+    // Se não tem marca no banco, força consulta mesmo que a placa seja a mesma (resolve conflito com RPC rápida)
+    const temDadosTecnicos = !!(finalLead.veiculo_marca || finalLead.marca);
+    const deveConsultarFipe = incomingPlacaClean && (incomingPlacaClean !== storedPlacaClean || !temDadosTecnicos);
 
     if (deveConsultarFipe) {
       console.log(`PlacaFIPE: Consultando para placa "${incomingPlacaClean}" (anterior: "${storedPlacaClean || 'nenhuma'}")`);
@@ -316,6 +373,8 @@ Deno.serve(async (req) => {
                 sub_segmento: info.sub_segmento,
                 municipio: info.municipio,
                 uf: info.uf,
+                cidade_final: info.municipio,
+                estado_final: info.uf,
                 codigo_fipe: fipeArray.length > 0 ? fipeArray[0].codigo_fipe : null,
                 mes_referencia: fipeArray.length > 0 ? fipeArray[0].mes_referencia : null,
                 desvalorizometro: fipeArray.length > 0 ? fipeArray[0].desvalorizometro : null,

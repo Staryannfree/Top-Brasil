@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Car, Search, Gauge, Database, History, DatabaseZap, Loader2, UserPlus, Info } from 'lucide-react';
+import { Car, Search, Gauge, Database, History, DatabaseZap, Loader2, UserPlus, Info, TrendingDown, TrendingUp, Settings, Weight, Zap, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +30,24 @@ interface PlacaHistory {
     cilindradas?: string;
     segmento?: string;
     situacao?: string;
+    codigo_fipe?: string;
+    mes_referencia?: string;
+    procedencia?: string;
+    tipo_veiculo?: string;
+    potencia?: string;
+    n_motor?: string;
+    caixa_cambio?: string;
+    pbt?: string;
+    cmt?: string;
+    capacidade_carga?: string;
+    n_eixos?: string;
+    n_passageiros?: string;
+    carroceria?: string;
+    tipo_carroceria?: string;
+    tipo_montagem?: string;
+    situacao_chassi?: string;
+    eixo_traseiro_dif?: string;
+    historico_precos?: any[];
 }
 
 interface PlacasHubProps {
@@ -44,6 +62,7 @@ export function PlacasHub({ onAddLead }: PlacasHubProps) {
     const [history, setHistory] = useState<PlacaHistory[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [currentResult, setCurrentResult] = useState<any>(null);
+    const [activeTab, setActiveTab ] = useState('consultar');
 
     useEffect(() => {
         fetchQuotas();
@@ -101,21 +120,44 @@ export function PlacasHub({ onAddLead }: PlacasHubProps) {
                 body: { placa }
             });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Erro retornado pelo Supabase:', error);
+                
+                const status = (error as any).status;
+                const message = error.message || '';
+
+                if (status === 401 || message.includes('401') || message.includes('non-2xx')) {
+                    toast.error('Sessão expirada ou falha de conexão. Por favor, atualize a página.');
+                } else if (status === 404 || message.includes('404')) {
+                    toast.error('Serviço de consulta temporariamente indisponível (404).');
+                } else if (status >= 500 || message.includes('5xx')) {
+                    toast.error('Erro no servidor de consulta. Tente novamente em alguns minutos.');
+                } else {
+                    toast.error('Não foi possível conectar ao serviço de placas no momento.');
+                }
+                return;
+            }
+
             if (data && data.success) {
                 setCurrentResult(data.data);
                 toast.success('Placa localizada com sucesso!');
                 fetchQuotas(); // Update quotas
                 setHistory(prev => [data.data, ...prev].slice(0, 50)); // Update history locally
             } else {
-                toast.error(data?.error || 'Não foi possível consultar a placa.');
+                toast.error(data?.error || 'Placa não encontrada ou erro na API.');
             }
         } catch (err: any) {
-            console.error('Erro ao consultar placa:', err);
-            toast.error('Falha ao consultar a PlacaFipe.');
+            console.error('Erro crítico ao consultar placa:', err);
+            toast.error(err.message || 'Falha ao processar a consulta da placa.');
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleVerDetalhes = (item: PlacaHistory) => {
+        setCurrentResult(item);
+        setActiveTab('consultar');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleCriarLead = (item: PlacaHistory) => {
@@ -179,7 +221,7 @@ export function PlacasHub({ onAddLead }: PlacasHubProps) {
                 </Card>
             </div>
 
-            <Tabs defaultValue="consultar" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="w-full max-w-md grid grid-cols-2">
                     <TabsTrigger value="consultar" className="gap-2"><Search className="h-4 w-4" /> Consultar</TabsTrigger>
                     <TabsTrigger value="historico" className="gap-2"><History className="h-4 w-4" /> Minhas Placas</TabsTrigger>
@@ -235,13 +277,33 @@ export function PlacasHub({ onAddLead }: PlacasHubProps) {
                                                 <div className="col-span-2 sm:col-span-2">
                                                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Veículo</p>
                                                     <p className="font-bold text-lg leading-tight uppercase">{currentResult.marca} {currentResult.modelo}</p>
-                                                    <p className="text-xs text-muted-foreground font-medium mt-1">Fabricação/Modelo: {currentResult.ano}</p>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <p className="text-xs text-muted-foreground font-medium">Fabricação/Modelo: {currentResult.ano}</p>
+                                                        {currentResult.tipo_veiculo && (
+                                                            <Badge variant="secondary" className="text-[9px] h-4 px-1.5 uppercase">{currentResult.tipo_veiculo}</Badge>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 
-                                                <div>
+                                                <div className="col-span-1">
                                                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Valor FIPE</p>
-                                                    <p className="font-black text-xl text-emerald-600 dark:text-emerald-400">{fmt(currentResult.valor_fipe)}</p>
-                                                    <p className="text-[9px] text-muted-foreground uppercase mt-1">Mês Ref: Março/2026</p>
+                                                    <div className="flex flex-col">
+                                                        <p className="font-black text-xl text-emerald-600 dark:text-emerald-400">{fmt(currentResult.valor_fipe)}</p>
+                                                        {currentResult.codigo_fipe && (
+                                                            <p className="text-[9px] font-mono text-muted-foreground opacity-80">CÓD: {currentResult.codigo_fipe}</p>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-[9px] text-muted-foreground uppercase mt-1">Ref: {currentResult.mes_referencia || '--'}</p>
+                                                </div>
+
+                                                <div className="pt-4 border-t border-dashed">
+                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Procedência</p>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-xs font-semibold uppercase">{currentResult.procedencia || 'NACIONAL'}</span>
+                                                        {(!currentResult.procedencia || currentResult.procedencia.toUpperCase().includes('NACIONAL')) && (
+                                                            <span className="text-xs">🇧🇷</span>
+                                                        )}
+                                                    </div>
                                                 </div>
 
                                                 <div className="pt-4 border-t border-dashed">
@@ -254,39 +316,114 @@ export function PlacasHub({ onAddLead }: PlacasHubProps) {
                                                     <p className="font-semibold text-sm uppercase">{currentResult.combustivel || '--'}</p>
                                                 </div>
 
-                                                <div className="pt-4 border-t border-dashed">
-                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Cilindradas</p>
-                                                    <p className="font-semibold text-sm uppercase">{currentResult.cilindradas || '--'}</p>
-                                                </div>
-
-                                                <div className="pt-4 border-t border-dashed">
-                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Chassi (Final)</p>
-                                                    <p className="font-mono text-sm font-bold">{currentResult.chassi_parcial || '******'}</p>
-                                                </div>
-
-                                                <div className="pt-4 border-t border-dashed">
-                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Motor</p>
-                                                    <p className="font-mono text-sm font-bold uppercase">{currentResult.motor || '******'}</p>
-                                                </div>
-
-                                                <div className="pt-4 border-t border-dashed bg-primary/5 -m-2 p-2 rounded">
+                                                <div className="pt-4 border-t border-dashed bg-primary/5 -m-2 p-2 rounded col-span-1">
                                                     <p className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1 flex items-center gap-1">
                                                         <Gauge className="h-3 w-3" /> Cota (Franquia)
                                                     </p>
                                                     <p className="font-black text-base text-primary">{fmt(calcCota(currentResult.valor_fipe) || 0)}</p>
                                                 </div>
-                                            </div>
-                                            
-                                            <div className="flex gap-3 justify-end pt-4 border-t border-dashed">
-                                                <Button
-                                                    variant="default"
-                                                    className="w-full sm:w-auto gap-2 h-11 px-8 font-bold uppercase text-xs"
-                                                    onClick={() => handleCriarLead(currentResult)}
-                                                >
-                                                    <UserPlus className="h-4 w-4" /> Cadastrar como novo Lead
-                                                </Button>
+
+                                                <div className="col-span-2 pt-4 border-t border-dashed">
+                                                    <Button
+                                                        variant="default"
+                                                        className="w-full gap-2 h-10 font-bold uppercase text-[10px]"
+                                                        onClick={() => handleCriarLead(currentResult)}
+                                                    >
+                                                        <UserPlus className="h-3.5 w-3.5" /> Cadastrar Lead
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {/* Ficha Técnica Expandida (Perícia Total) */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                                        <Card className="bg-muted/10 border-dashed">
+                                            <CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
+                                                <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                                                    <Settings className="h-4 w-4 text-primary" /> Ficha Técnica
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="px-4 pb-4">
+                                                <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-xs">
+                                                    <div>
+                                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase">Potência / Cilindradas</p>
+                                                        <p className="font-medium">{currentResult.potencia || '--'} / {currentResult.cilindradas || '--'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase">Câmbio</p>
+                                                        <p className="font-medium uppercase">{currentResult.caixa_cambio || '--'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase">Nº Motor</p>
+                                                        <p className="font-mono font-medium">{currentResult.n_motor || currentResult.motor || '******'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase">Chassi (Final)</p>
+                                                        <p className="font-mono font-medium">{currentResult.chassi_parcial || '******'}</p>
+                                                    </div>
+                                                    <div className="col-span-2 h-px bg-border my-1"></div>
+                                                    <div>
+                                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase">PBT / Tração (CMT)</p>
+                                                        <p className="font-medium">{currentResult.pbt || '--'} / {currentResult.cmt || '--'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase">Capacidade / Eixos</p>
+                                                        <p className="font-medium">{currentResult.capacidade_carga || '--'} / {currentResult.n_eixos || '--'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase">Carroceria / Montagem</p>
+                                                        <p className="font-medium uppercase">{currentResult.carroceria || '--'} / {currentResult.tipo_montagem || '--'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase">Passageiros</p>
+                                                        <p className="font-medium">{currentResult.n_passageiros || '--'}</p>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+
+                                        <Card className="bg-muted/10 border-dashed">
+                                            <CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
+                                                <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                                                    <History className="h-4 w-4 text-primary" /> Histórico de Preços
+                                                </CardTitle>
+                                                {currentResult.historico_precos && (
+                                                    <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                                                        Desvalorizômetro Ativo
+                                                    </Badge>
+                                                )}
+                                            </CardHeader>
+                                            <CardContent className="px-4 pb-4">
+                                                {currentResult.historico_precos ? (
+                                                    <div className="space-y-2 h-[150px] overflow-y-auto pr-2 custom-scrollbar">
+                                                        {currentResult.historico_precos.slice(0, 5).map((h: any, idx: number) => {
+                                                            const prev = currentResult.historico_precos[idx + 1];
+                                                            const diff = prev ? parseFloat(h.valor) - parseFloat(prev.valor) : 0;
+                                                            return (
+                                                                <div key={idx} className="flex items-center justify-between p-2 rounded border bg-background/50 text-[11px]">
+                                                                    <span className="font-medium text-muted-foreground">{h.mes_ano_extenso}</span>
+                                                                    <div className="flex items-center gap-2 font-bold">
+                                                                        <span>{fmt(parseFloat(h.valor))}</span>
+                                                                        {idx === 0 && (
+                                                                            <span className={diff >= 0 ? "text-emerald-500" : "text-rose-500"}>
+                                                                                {diff >= 0 ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                        <p className="text-[10px] text-center text-muted-foreground pt-1 italic">...histórico completo salvo no lead</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="h-[150px] flex flex-col items-center justify-center text-center p-4">
+                                                        <Info className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                                                        <p className="text-xs text-muted-foreground italic">Histórico de preços indisponível para este modelo.</p>
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
                                     </div>
                                 </div>
                             )}
@@ -323,9 +460,14 @@ export function PlacasHub({ onAddLead }: PlacasHubProps) {
                                                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">FIPE</p>
                                                     <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{fmt(item.valor_fipe)}</p>
                                                 </div>
-                                                <Button variant="secondary" size="sm" onClick={() => handleCriarLead(item)}>
-                                                    Criar Lead
-                                                </Button>
+                                                 <div className="flex items-center gap-2">
+                                                    <Button variant="outline" size="sm" className="gap-1.5" onClick={() => handleVerDetalhes(item)}>
+                                                        <Eye className="h-3 w-3" /> Detalhes
+                                                    </Button>
+                                                    <Button variant="secondary" size="sm" onClick={() => handleCriarLead(item)}>
+                                                        Criar Lead
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}

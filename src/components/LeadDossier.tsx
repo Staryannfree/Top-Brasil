@@ -23,8 +23,13 @@ import { toast } from 'sonner';
 import type { Lead, LeadStatus, LeadNote } from '@/types/lead';
 import { KANBAN_COLUMNS } from '@/types/lead';
 import { useState, useEffect, useMemo } from 'react';
-import { initialProvas, CATEGORIA_VEICULO_CONFIG, EVENTO_CONFIG } from '@/components/MarketingHub';
-import type { ProvaSocial, ProvaCategoriaVeiculo } from '@/components/MarketingHub';
+import { 
+  initialProvas, 
+  CATEGORIA_VEICULO_CONFIG, 
+  EVENTO_CONFIG,
+  type ProvaSocial, 
+  type ProvaCategoriaVeiculo 
+} from '@/types/marketing';
 
 interface LeadDossierProps {
   lead: Lead | null;
@@ -272,8 +277,12 @@ export function LeadDossier({ lead, open, onOpenChange, onUpdateLead, onUpdateSt
                 <EditableField label="Chassi Parcial" value={lead.chassi_parcial} editing={editing} editValue={ed('chassi_parcial')} onChange={(v) => setEd('chassi_parcial', v)} />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <EditableField label="Cidade/Estado" value={lead.veiculo_cidade || `${lead.cidade || ''} ${lead.estado || ''}`.trim() || null} editing={editing} editValue={editing ? String(editData.veiculo_cidade ?? '') : undefined} onChange={(v) => setEd('veiculo_cidade', v)} />
-                <EditableField label="Estado Antigo" value={lead.estado} editing={editing} editValue={ed('estado')} onChange={(v) => setEd('estado', v)} />
+                <EditableField label="Cidade de circulação" value={lead.cidade_final || '—'} editing={editing} editValue={ed('cidade_final')} onChange={(v) => setEd('cidade_final', v)} />
+                <EditableField label="Estado de circulação" value={lead.estado_final || '—'} editing={editing} editValue={ed('estado_final')} onChange={(v) => setEd('estado_final', v)} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <EditableField label="Localização (Placa)" value={lead.veiculo_cidade || '—'} editing={false} />
+                <EditableField label="UF Antiga" value={lead.estado || '—'} editing={false} />
               </div>
 
               {franquia != null && (
